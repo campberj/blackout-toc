@@ -12,7 +12,8 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "ci": "npm run lint && npm run check && npm run test && npm run build"
+    "ci": "npm run lint && npm run check && npm run test && npm run build",
+    "schema": "node --experimental-strip-types --no-warnings scripts/emit-schema.ts"
   },
   "engines": {
     "node": ">=22"

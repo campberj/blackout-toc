@@ -1,0 +1,5061 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/Pack",
+  "$defs": {
+    "Pack": {
+      "type": "object",
+      "properties": {
+        "$schema": {
+          "type": "string",
+          "maxLength": 512
+        },
+        "format": {
+          "type": "string",
+          "const": "blkout-pack"
+        },
+        "formatVersion": {
+          "type": "number",
+          "const": 1
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "version": {
+          "type": "string",
+          "maxLength": 64,
+          "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "author": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "license": {
+          "type": "string",
+          "maxLength": 280
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "requires": {
+          "default": [],
+          "maxItems": 32,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/PackDependency"
+          }
+        },
+        "contentTags": {
+          "default": [],
+          "maxItems": 32,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          }
+        },
+        "content": {
+          "default": {},
+          "$ref": "#/$defs/PackContent"
+        }
+      },
+      "required": [
+        "format",
+        "formatVersion",
+        "id",
+        "version",
+        "title",
+        "author"
+      ],
+      "additionalProperties": false,
+      "title": "BLKOUT: TOC data pack"
+    },
+    "PackDependency": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "range": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[0-9xX*^~<>=|.\\s-]+$"
+        }
+      },
+      "required": [
+        "id",
+        "range"
+      ],
+      "additionalProperties": false
+    },
+    "PackContent": {
+      "type": "object",
+      "properties": {
+        "keywords": {
+          "default": [],
+          "maxItems": 2000,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Keyword"
+          }
+        },
+        "factions": {
+          "default": [],
+          "maxItems": 2000,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Faction"
+          }
+        },
+        "forces": {
+          "default": [],
+          "maxItems": 2000,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ForceCard"
+          }
+        },
+        "units": {
+          "default": [],
+          "maxItems": 2000,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/UnitCard"
+          }
+        },
+        "rulesets": {
+          "default": [],
+          "maxItems": 2000,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/RulesetProfile"
+          }
+        },
+        "calibrations": {
+          "default": [],
+          "maxItems": 2000,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CalibrationProfile"
+          }
+        },
+        "scenarios": {
+          "default": [],
+          "maxItems": 2000,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Scenario"
+          }
+        },
+        "tables": {
+          "default": [],
+          "maxItems": 2000,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Table"
+          }
+        },
+        "campaigns": {
+          "default": [],
+          "maxItems": 2000,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Campaign"
+          }
+        },
+        "errata": {
+          "default": [],
+          "maxItems": 2000,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Errata"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "Keyword": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "appliesTo": {
+          "type": "string",
+          "enum": [
+            "weapon",
+            "model"
+          ]
+        },
+        "param": {
+          "type": "string",
+          "const": "X"
+        },
+        "gist": {
+          "type": "string",
+          "maxLength": 280
+        },
+        "byRuleset": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/Ref"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "maxLength": 4000
+          }
+        },
+        "tags": {
+          "default": [],
+          "maxItems": 32,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "appliesTo",
+        "gist"
+      ],
+      "additionalProperties": false
+    },
+    "Ref": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Id"
+        },
+        {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        }
+      ],
+      "description": "Bare local id (same pack) or qualified `packId:localId`."
+    },
+    "Id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*:[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "description": "Qualified id `packId:localId` (lowercase slugs)."
+    },
+    "Faction": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "code": {
+          "type": "string",
+          "maxLength": 16
+        },
+        "side": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "tags": {
+          "default": [],
+          "maxItems": 32,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ],
+      "additionalProperties": false
+    },
+    "ForceCard": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "faction": {
+          "$ref": "#/$defs/Ref"
+        },
+        "forceRule": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "battleDrills": {
+          "default": [],
+          "maxItems": 8,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Ability"
+          }
+        },
+        "armory": {
+          "default": [],
+          "maxItems": 12,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ArmoryItem"
+          }
+        },
+        "dusterArmory": {
+          "default": [],
+          "maxItems": 12,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ArmoryItem"
+          }
+        },
+        "tags": {
+          "default": [],
+          "maxItems": 32,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "faction",
+        "forceRule"
+      ],
+      "additionalProperties": false
+    },
+    "Ability": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "cpCost": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9
+        },
+        "usesMax": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 4000
+        }
+      },
+      "required": [
+        "key",
+        "name",
+        "text"
+      ],
+      "additionalProperties": false
+    },
+    "ArmoryItem": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "weapon"
+            },
+            "weapon": {
+              "$ref": "#/$defs/Weapon"
+            }
+          },
+          "required": [
+            "kind",
+            "weapon"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "ability"
+            },
+            "ability": {
+              "$ref": "#/$defs/Ability"
+            }
+          },
+          "required": [
+            "kind",
+            "ability"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "Weapon": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "minRange": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 96
+        },
+        "maxRange": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 96
+        },
+        "damage": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "keywords": {
+          "default": [],
+          "maxItems": 16,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/KeywordRef"
+          }
+        },
+        "usesMax": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 4000
+        }
+      },
+      "required": [
+        "key",
+        "name"
+      ],
+      "additionalProperties": false
+    },
+    "KeywordRef": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "$ref": "#/$defs/Ref"
+        },
+        "x": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 99
+        }
+      },
+      "required": [
+        "key"
+      ],
+      "additionalProperties": false,
+      "description": "\"Blast (1)\" → {key:\"core:blast\", x:1}"
+    },
+    "UnitCard": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "faction": {
+          "$ref": "#/$defs/Ref"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "infantry",
+            "handler",
+            "duster",
+            "vehicle",
+            "hostile"
+          ]
+        },
+        "code": {
+          "type": "string",
+          "maxLength": 32
+        },
+        "skill": {
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 10
+        },
+        "move": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 24
+        },
+        "armor": {
+          "$ref": "#/$defs/Armor"
+        },
+        "grunts": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9
+        },
+        "modelCount": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20
+        },
+        "combatLoads": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9
+        },
+        "weapons": {
+          "default": [],
+          "maxItems": 8,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Weapon"
+          }
+        },
+        "specialists": {
+          "default": [],
+          "maxItems": 8,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Specialist"
+          }
+        },
+        "rules": {
+          "default": [],
+          "maxItems": 8,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/UnitRule"
+          }
+        },
+        "keywords": {
+          "default": [],
+          "maxItems": 16,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/KeywordRef"
+          }
+        },
+        "damageTracks": {
+          "maxItems": 4,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "size": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 12
+              }
+            },
+            "required": [
+              "key",
+              "name",
+              "size"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "behavior": {
+          "default": [],
+          "maxItems": 16,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          }
+        },
+        "source": {
+          "type": "object",
+          "properties": {
+            "edition": {
+              "type": "string",
+              "maxLength": 32
+            },
+            "custom": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "tags": {
+          "default": [],
+          "maxItems": 32,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "faction",
+        "type",
+        "skill",
+        "move",
+        "armor",
+        "grunts",
+        "combatLoads"
+      ],
+      "additionalProperties": false
+    },
+    "Armor": {
+      "type": "object",
+      "properties": {
+        "dice": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3
+        },
+        "target": {
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 10
+        }
+      },
+      "required": [
+        "dice",
+        "target"
+      ],
+      "additionalProperties": false,
+      "description": "\"2/6\" → {dice:2, target:6}"
+    },
+    "Specialist": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "skill": {
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 10
+        },
+        "move": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 24
+        },
+        "armor": {
+          "$ref": "#/$defs/Armor"
+        },
+        "weapons": {
+          "default": [],
+          "maxItems": 4,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Weapon"
+          }
+        },
+        "rules": {
+          "default": [],
+          "maxItems": 4,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/UnitRule"
+          }
+        },
+        "keywords": {
+          "default": [],
+          "maxItems": 16,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/KeywordRef"
+          }
+        }
+      },
+      "required": [
+        "key",
+        "name"
+      ],
+      "additionalProperties": false
+    },
+    "UnitRule": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "usesMax": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 4000
+        }
+      },
+      "required": [
+        "key",
+        "name",
+        "text"
+      ],
+      "additionalProperties": false
+    },
+    "RulesetProfile": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "startingCp": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 20
+        },
+        "cpCaps": {
+          "default": {},
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          },
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 99
+          }
+        },
+        "roundLimit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 12
+        },
+        "dusterRules": {
+          "type": "string",
+          "enum": [
+            "core",
+            "impact-frontline",
+            "impact-chart"
+          ]
+        },
+        "coverModel": {
+          "type": "string",
+          "enum": [
+            "binary",
+            "full-partial"
+          ]
+        },
+        "unitLimits": {
+          "default": [],
+          "maxItems": 64,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/FieldCheck"
+          }
+        },
+        "rosterModes": {
+          "default": [],
+          "maxItems": 3,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/RosterMode"
+          }
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "tags": {
+          "default": [],
+          "maxItems": 32,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "startingCp",
+        "roundLimit",
+        "dusterRules",
+        "coverModel"
+      ],
+      "additionalProperties": false
+    },
+    "FieldCheck": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "field": {
+          "type": "string",
+          "enum": [
+            "skill",
+            "move",
+            "armor.dice",
+            "armor.target",
+            "grunts",
+            "combatLoads",
+            "specialists",
+            "weapons",
+            "rules",
+            "keywords",
+            "weapon.maxRange",
+            "weapon.damage"
+          ]
+        },
+        "when": {
+          "$ref": "#/$defs/UnitSelector"
+        },
+        "min": {
+          "type": "number"
+        },
+        "max": {
+          "type": "number"
+        },
+        "in": {
+          "maxItems": 64,
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "notIn": {
+          "maxItems": 64,
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "message": {
+          "type": "string",
+          "maxLength": 280
+        }
+      },
+      "required": [
+        "key",
+        "field",
+        "message"
+      ],
+      "additionalProperties": false
+    },
+    "UnitSelector": {
+      "type": "object",
+      "properties": {
+        "types": {
+          "maxItems": 5,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "infantry",
+              "handler",
+              "duster",
+              "vehicle",
+              "hostile"
+            ]
+          }
+        },
+        "exceptTypes": {
+          "maxItems": 5,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "infantry",
+              "handler",
+              "duster",
+              "vehicle",
+              "hostile"
+            ]
+          }
+        },
+        "tags": {
+          "maxItems": 32,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          }
+        },
+        "keywords": {
+          "maxItems": 32,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Ref"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "RosterMode": {
+      "type": "object",
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "core",
+            "matched",
+            "skirmish"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "groups": {
+          "$ref": "#/$defs/Count"
+        },
+        "forceCardsPerGroup": {
+          "$ref": "#/$defs/Count"
+        },
+        "unitsPerGroup": {
+          "$ref": "#/$defs/Count"
+        },
+        "distinctUnitsPerGroup": {
+          "default": false,
+          "type": "boolean"
+        },
+        "handlersPerGroup": {
+          "$ref": "#/$defs/Count"
+        },
+        "dusters": {
+          "default": {
+            "max": 0
+          },
+          "type": "object",
+          "properties": {
+            "max": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9
+            },
+            "replacesUnit": {
+              "default": true,
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "max"
+          ],
+          "additionalProperties": false
+        },
+        "allowedUnitTypes": {
+          "maxItems": 5,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "infantry",
+              "handler",
+              "duster",
+              "vehicle",
+              "hostile"
+            ]
+          }
+        },
+        "limits": {
+          "default": [],
+          "maxItems": 16,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+              },
+              "select": {
+                "$ref": "#/$defs/UnitSelector"
+              },
+              "scope": {
+                "type": "string",
+                "enum": [
+                  "group",
+                  "roster"
+                ]
+              },
+              "count": {
+                "$ref": "#/$defs/Count"
+              },
+              "message": {
+                "type": "string",
+                "maxLength": 280
+              }
+            },
+            "required": [
+              "key",
+              "select",
+              "scope",
+              "count",
+              "message"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 4000
+        }
+      },
+      "required": [
+        "mode",
+        "name",
+        "groups",
+        "forceCardsPerGroup",
+        "unitsPerGroup",
+        "handlersPerGroup"
+      ],
+      "additionalProperties": false
+    },
+    "Count": {
+      "type": "object",
+      "properties": {
+        "min": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 999
+        },
+        "max": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 999
+        }
+      },
+      "additionalProperties": false
+    },
+    "CalibrationProfile": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "rulesets": {
+          "default": [],
+          "maxItems": 8,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Ref"
+          }
+        },
+        "checks": {
+          "default": [],
+          "maxItems": 64,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/FieldCheck"
+          }
+        },
+        "outliers": {
+          "type": "object",
+          "properties": {
+            "fields": {
+              "minItems": 1,
+              "maxItems": 12,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "skill",
+                  "move",
+                  "armor.dice",
+                  "armor.target",
+                  "grunts",
+                  "combatLoads",
+                  "specialists",
+                  "weapons",
+                  "rules",
+                  "keywords",
+                  "weapon.maxRange",
+                  "weapon.damage"
+                ]
+              }
+            },
+            "percentile": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 49
+            }
+          },
+          "required": [
+            "fields",
+            "percentile"
+          ],
+          "additionalProperties": false
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "tags": {
+          "default": [],
+          "maxItems": 32,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ],
+      "additionalProperties": false
+    },
+    "Scenario": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "lore": {
+          "type": "string",
+          "maxLength": 20000
+        },
+        "tableSize": {
+          "type": "object",
+          "properties": {
+            "width": {
+              "type": "integer",
+              "minimum": 6,
+              "maximum": 120
+            },
+            "depth": {
+              "type": "integer",
+              "minimum": 6,
+              "maximum": 120
+            },
+            "unit": {
+              "default": "in",
+              "type": "string",
+              "enum": [
+                "in",
+                "cm"
+              ]
+            }
+          },
+          "required": [
+            "width",
+            "depth"
+          ],
+          "additionalProperties": false
+        },
+        "roundLimit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 12
+        },
+        "hardpoints": {
+          "default": 0,
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 12
+        },
+        "pois": {
+          "default": [],
+          "maxItems": 16,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "text": {
+                "type": "string",
+                "maxLength": 4000
+              }
+            },
+            "required": [
+              "key",
+              "name"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "forces": {
+          "type": "object",
+          "properties": {
+            "symmetric": {
+              "default": true,
+              "type": "boolean"
+            },
+            "sides": {
+              "default": [],
+              "maxItems": 4,
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/ScenarioSide"
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "deployment": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string",
+              "maxLength": 4000
+            },
+            "zones": {
+              "default": [],
+              "maxItems": 8,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "side": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64,
+                    "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+                  },
+                  "text": {
+                    "type": "string",
+                    "maxLength": 280
+                  }
+                },
+                "required": [
+                  "side",
+                  "text"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "text"
+          ],
+          "additionalProperties": false
+        },
+        "specialRules": {
+          "default": [],
+          "maxItems": 16,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "text": {
+                "type": "string",
+                "maxLength": 4000
+              }
+            },
+            "required": [
+              "key",
+              "name"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "scoring": {
+          "default": [],
+          "maxItems": 32,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ScoringRule"
+          }
+        },
+        "endConditions": {
+          "default": [],
+          "maxItems": 8,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+              },
+              "text": {
+                "type": "string",
+                "maxLength": 280
+              }
+            },
+            "required": [
+              "key",
+              "text"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "scoreLabel": {
+          "default": "VP",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "campaignReward": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "tags": {
+          "default": [],
+          "maxItems": 32,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "tableSize",
+        "roundLimit",
+        "forces",
+        "deployment"
+      ],
+      "additionalProperties": false
+    },
+    "ScenarioSide": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "rosterMode": {
+          "type": "string",
+          "enum": [
+            "core",
+            "matched",
+            "skirmish"
+          ]
+        },
+        "units": {
+          "default": [],
+          "maxItems": 16,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "unit": {
+                "$ref": "#/$defs/Ref"
+              },
+              "count": {
+                "default": 1,
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 20
+              }
+            },
+            "required": [
+              "unit"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "behavior": {
+          "default": [],
+          "maxItems": 16,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          }
+        }
+      },
+      "required": [
+        "key",
+        "name"
+      ],
+      "additionalProperties": false
+    },
+    "ScoringRule": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "event": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "points": {
+          "type": "integer",
+          "minimum": -99,
+          "maximum": 99
+        },
+        "timing": {
+          "default": {
+            "when": "immediate"
+          },
+          "$ref": "#/$defs/ScoringTiming"
+        },
+        "max": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 99
+        },
+        "side": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 4000
+        }
+      },
+      "required": [
+        "key",
+        "event",
+        "label",
+        "points"
+      ],
+      "additionalProperties": false
+    },
+    "ScoringTiming": {
+      "type": "object",
+      "properties": {
+        "when": {
+          "type": "string",
+          "enum": [
+            "immediate",
+            "end-of-round",
+            "end-of-game"
+          ]
+        },
+        "rounds": {
+          "maxItems": 12,
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 12
+          }
+        }
+      },
+      "required": [
+        "when"
+      ],
+      "additionalProperties": false
+    },
+    "Table": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "entries": {
+          "default": [],
+          "maxItems": 200,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TableEntry"
+          }
+        },
+        "tags": {
+          "default": [],
+          "maxItems": 32,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ],
+      "additionalProperties": false
+    },
+    "TableEntry": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "weight": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "narrative": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
+            },
+            "text": {
+              "type": "string",
+              "maxLength": 20000
+            },
+            "speaker": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+            },
+            "tags": {
+              "default": [],
+              "maxItems": 32,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+              }
+            }
+          },
+          "required": [
+            "text"
+          ],
+          "additionalProperties": false
+        },
+        "effects": {
+          "default": [],
+          "maxItems": 64,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Effect"
+          }
+        },
+        "when": {
+          "$ref": "#/$defs/Condition"
+        },
+        "tags": {
+          "default": [],
+          "maxItems": 32,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          }
+        }
+      },
+      "required": [
+        "key",
+        "weight",
+        "label"
+      ],
+      "additionalProperties": false
+    },
+    "Effect": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "type": "string",
+              "const": "addXp"
+            },
+            "target": {
+              "$ref": "#/$defs/Target"
+            },
+            "amount": {
+              "type": "integer",
+              "minimum": -9999,
+              "maximum": 9999
+            }
+          },
+          "required": [
+            "op",
+            "target",
+            "amount"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "type": "string",
+              "const": "stepLadder"
+            },
+            "ladder": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+            },
+            "target": {
+              "$ref": "#/$defs/Target"
+            },
+            "steps": {
+              "type": "integer",
+              "minimum": -16,
+              "maximum": 16
+            }
+          },
+          "required": [
+            "op",
+            "ladder",
+            "steps"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "type": "string",
+              "const": "setLadder"
+            },
+            "ladder": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+            },
+            "target": {
+              "$ref": "#/$defs/Target"
+            },
+            "state": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+            }
+          },
+          "required": [
+            "op",
+            "ladder",
+            "state"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "type": "string",
+              "const": "adjustPool"
+            },
+            "pool": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+            },
+            "amount": {
+              "type": "integer",
+              "minimum": -9999,
+              "maximum": 9999
+            }
+          },
+          "required": [
+            "op",
+            "pool",
+            "amount"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "type": "string",
+              "const": "adjustTrack"
+            },
+            "track": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+            },
+            "amount": {
+              "type": "integer",
+              "minimum": -9999,
+              "maximum": 9999
+            }
+          },
+          "required": [
+            "op",
+            "track",
+            "amount"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "type": "string",
+              "const": "setFlag"
+            },
+            "flag": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+            },
+            "value": {
+              "default": true,
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "string",
+                  "maxLength": 280
+                }
+              ]
+            }
+          },
+          "required": [
+            "op",
+            "flag"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "type": "string",
+              "const": "addOperator"
+            },
+            "team": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+            },
+            "operator": {
+              "$ref": "#/$defs/OperatorSeed"
+            }
+          },
+          "required": [
+            "op",
+            "team",
+            "operator"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "type": "string",
+              "const": "removeOperator"
+            },
+            "target": {
+              "$ref": "#/$defs/Target"
+            },
+            "reason": {
+              "type": "string",
+              "enum": [
+                "kia",
+                "mia",
+                "captured",
+                "retired",
+                "transferred"
+              ]
+            }
+          },
+          "required": [
+            "op",
+            "target",
+            "reason"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "type": "string",
+              "const": "addTeam"
+            },
+            "team": {
+              "$ref": "#/$defs/TeamDef"
+            }
+          },
+          "required": [
+            "op",
+            "team"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "type": "string",
+              "const": "unlockMission"
+            },
+            "mission": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+            },
+            "stage": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+            }
+          },
+          "required": [
+            "op",
+            "mission"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "type": "string",
+              "const": "lockMission"
+            },
+            "mission": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+            }
+          },
+          "required": [
+            "op",
+            "mission"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "type": "string",
+              "const": "rollTable"
+            },
+            "table": {
+              "$ref": "#/$defs/Ref"
+            },
+            "times": {
+              "default": 1,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 5
+            }
+          },
+          "required": [
+            "op",
+            "table"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "type": "string",
+              "const": "showNarrative"
+            },
+            "narrative": {
+              "$ref": "#/$defs/NarrativeRef"
+            }
+          },
+          "required": [
+            "op",
+            "narrative"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "type": "string",
+              "const": "grantAsset"
+            },
+            "asset": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+            },
+            "team": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+            },
+            "count": {
+              "default": 1,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 99
+            }
+          },
+          "required": [
+            "op",
+            "asset"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "type": "string",
+              "const": "promote"
+            },
+            "target": {
+              "$ref": "#/$defs/Target"
+            },
+            "rank": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+            }
+          },
+          "required": [
+            "op",
+            "target"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "Target": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "participants",
+            "roster",
+            "subject"
+          ]
+        },
+        {
+          "type": "string",
+          "pattern": "^operator:[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        {
+          "type": "string",
+          "pattern": "^team:[a-z0-9]+(?:-[a-z0-9]+)*$"
+        }
+      ],
+      "description": "'participants' | 'roster' | 'subject' | 'operator:<key>' | 'team:<key>'"
+    },
+    "OperatorSeed": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "callsign": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "unit": {
+          "$ref": "#/$defs/Ref"
+        },
+        "stats": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          },
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": -9999,
+            "maximum": 9999
+          }
+        },
+        "fields": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "maxLength": 280
+              }
+            ]
+          }
+        },
+        "tags": {
+          "default": [],
+          "maxItems": 32,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "TeamDef": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "callsign": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 280
+        },
+        "operators": {
+          "default": [],
+          "maxItems": 24,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/OperatorSeed"
+          }
+        },
+        "tags": {
+          "default": [],
+          "maxItems": 32,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          }
+        }
+      },
+      "required": [
+        "key",
+        "name"
+      ],
+      "additionalProperties": false
+    },
+    "NarrativeRef": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
+            },
+            "text": {
+              "type": "string",
+              "maxLength": 20000
+            },
+            "speaker": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+            },
+            "tags": {
+              "default": [],
+              "maxItems": 32,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+              }
+            }
+          },
+          "required": [
+            "text"
+          ],
+          "additionalProperties": false
+        }
+      ],
+      "description": "NarrativeBlock key, or inline {title?, text, speaker?, tags}"
+    },
+    "Condition": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "type": "string",
+              "const": "flag"
+            },
+            "flag": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+            },
+            "equals": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "string",
+                  "maxLength": 280
+                }
+              ]
+            }
+          },
+          "required": [
+            "op",
+            "flag"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "type": "string",
+              "const": "trackGte"
+            },
+            "track": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+            },
+            "value": {
+              "type": "integer",
+              "minimum": -999,
+              "maximum": 999
+            }
+          },
+          "required": [
+            "op",
+            "track",
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "type": "string",
+              "const": "poolGte"
+            },
+            "pool": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+            },
+            "value": {
+              "type": "integer",
+              "minimum": -9999,
+              "maximum": 9999
+            }
+          },
+          "required": [
+            "op",
+            "pool",
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "type": "string",
+              "const": "missionOutcome"
+            },
+            "mission": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+            },
+            "outcomes": {
+              "minItems": 1,
+              "maxItems": 8,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+              }
+            }
+          },
+          "required": [
+            "op",
+            "outcomes"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "type": "string",
+              "const": "ladderIs"
+            },
+            "ladder": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+            },
+            "target": {
+              "$ref": "#/$defs/Target"
+            },
+            "states": {
+              "minItems": 1,
+              "maxItems": 16,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+              }
+            },
+            "match": {
+              "default": "any",
+              "type": "string",
+              "enum": [
+                "any",
+                "all",
+                "none"
+              ]
+            }
+          },
+          "required": [
+            "op",
+            "ladder",
+            "states"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "type": "string",
+              "const": "operatorStat"
+            },
+            "target": {
+              "$ref": "#/$defs/Target"
+            },
+            "stat": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+            },
+            "cmp": {
+              "default": "gte",
+              "type": "string",
+              "enum": [
+                "gte",
+                "lte",
+                "eq"
+              ]
+            },
+            "value": {
+              "type": "integer",
+              "minimum": -9999,
+              "maximum": 9999
+            },
+            "match": {
+              "default": "any",
+              "type": "string",
+              "enum": [
+                "any",
+                "all",
+                "none"
+              ]
+            }
+          },
+          "required": [
+            "op",
+            "target",
+            "stat",
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "type": "string",
+              "const": "stageIs"
+            },
+            "stage": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+            }
+          },
+          "required": [
+            "op",
+            "stage"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "type": "string",
+              "const": "roll"
+            },
+            "sides": {
+              "type": "integer",
+              "minimum": 2,
+              "maximum": 100
+            },
+            "gte": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          "required": [
+            "op",
+            "sides",
+            "gte"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "type": "string",
+              "const": "all"
+            },
+            "of": {
+              "minItems": 1,
+              "maxItems": 64,
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/Condition"
+              }
+            }
+          },
+          "required": [
+            "op",
+            "of"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "type": "string",
+              "const": "any"
+            },
+            "of": {
+              "minItems": 1,
+              "maxItems": 64,
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/Condition"
+              }
+            }
+          },
+          "required": [
+            "op",
+            "of"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "type": "string",
+              "const": "not"
+            },
+            "cond": {
+              "$ref": "#/$defs/Condition"
+            }
+          },
+          "required": [
+            "op",
+            "cond"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "Campaign": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "summary": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "intro": {
+          "type": "string",
+          "maxLength": 20000
+        },
+        "rulesets": {
+          "default": [],
+          "maxItems": 8,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Ref"
+          }
+        },
+        "personas": {
+          "default": [],
+          "maxItems": 16,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Persona"
+          }
+        },
+        "roster": {
+          "$ref": "#/$defs/RosterDef"
+        },
+        "timeline": {
+          "$ref": "#/$defs/Timeline"
+        },
+        "missions": {
+          "default": [],
+          "maxItems": 200,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Mission"
+          }
+        },
+        "ladders": {
+          "default": [],
+          "maxItems": 16,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Ladder"
+          }
+        },
+        "pools": {
+          "default": [],
+          "maxItems": 16,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Pool"
+          }
+        },
+        "tracks": {
+          "default": [],
+          "maxItems": 16,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Track"
+          }
+        },
+        "narratives": {
+          "default": [],
+          "maxItems": 500,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/NarrativeBlock"
+          }
+        },
+        "triggers": {
+          "default": [],
+          "maxItems": 200,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Trigger"
+          }
+        },
+        "assets": {
+          "default": [],
+          "maxItems": 64,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "text": {
+                "type": "string",
+                "maxLength": 280
+              }
+            },
+            "required": [
+              "key",
+              "name"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "tags": {
+          "default": [],
+          "maxItems": 32,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "roster",
+        "timeline"
+      ],
+      "additionalProperties": false
+    },
+    "Persona": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "callsign": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "role": {
+          "type": "string",
+          "maxLength": 280
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 280
+        }
+      },
+      "required": [
+        "key",
+        "name"
+      ],
+      "additionalProperties": false
+    },
+    "RosterDef": {
+      "type": "object",
+      "properties": {
+        "startingTeams": {
+          "default": [],
+          "maxItems": 16,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TeamDef"
+          }
+        },
+        "pick": {
+          "default": {
+            "min": 1,
+            "max": 1
+          },
+          "$ref": "#/$defs/Count"
+        },
+        "teamsMax": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 32
+        },
+        "operatorsPerTeam": {
+          "$ref": "#/$defs/Count"
+        },
+        "stats": {
+          "default": [],
+          "maxItems": 16,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/StatDef"
+          }
+        },
+        "operatorFields": {
+          "default": [],
+          "maxItems": 16,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/FieldDef"
+          }
+        },
+        "ranks": {
+          "default": [],
+          "maxItems": 16,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/RankDef"
+          }
+        },
+        "nameTable": {
+          "$ref": "#/$defs/Ref"
+        }
+      },
+      "additionalProperties": false
+    },
+    "StatDef": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "initial": {
+          "default": 0,
+          "type": "integer",
+          "minimum": -9999,
+          "maximum": 9999
+        },
+        "min": {
+          "type": "integer",
+          "minimum": -9999,
+          "maximum": 9999
+        },
+        "max": {
+          "type": "integer",
+          "minimum": -9999,
+          "maximum": 9999
+        }
+      },
+      "required": [
+        "key",
+        "name"
+      ],
+      "additionalProperties": false
+    },
+    "FieldDef": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "boolean",
+            "number",
+            "choice",
+            "text"
+          ]
+        },
+        "options": {
+          "maxItems": 64,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              }
+            },
+            "required": [
+              "value",
+              "label"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "min": {
+          "type": "number"
+        },
+        "max": {
+          "type": "number"
+        },
+        "default": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string",
+              "maxLength": 280
+            }
+          ]
+        },
+        "help": {
+          "type": "string",
+          "maxLength": 280
+        }
+      },
+      "required": [
+        "key",
+        "label",
+        "kind"
+      ],
+      "additionalProperties": false
+    },
+    "RankDef": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "xp": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 99999
+        }
+      },
+      "required": [
+        "key",
+        "name"
+      ],
+      "additionalProperties": false
+    },
+    "Timeline": {
+      "type": "object",
+      "properties": {
+        "topology": {
+          "default": "linear",
+          "type": "string",
+          "enum": [
+            "linear",
+            "nodes",
+            "map"
+          ]
+        },
+        "stages": {
+          "default": [],
+          "maxItems": 32,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Stage"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "Stage": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "briefing": {
+          "$ref": "#/$defs/NarrativeRef"
+        },
+        "slots": {
+          "default": [],
+          "maxItems": 16,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/MissionSlot"
+          }
+        },
+        "allowCustomMissions": {
+          "default": true,
+          "type": "boolean"
+        },
+        "endWhen": {
+          "$ref": "#/$defs/Condition"
+        }
+      },
+      "required": [
+        "key",
+        "name"
+      ],
+      "additionalProperties": false
+    },
+    "MissionSlot": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "missions": {
+          "minItems": 1,
+          "maxItems": 16,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          }
+        },
+        "optional": {
+          "default": false,
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "key",
+        "missions"
+      ],
+      "additionalProperties": false
+    },
+    "Mission": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "scenario": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Ref"
+            },
+            {
+              "$ref": "#/$defs/InlineScenario"
+            }
+          ]
+        },
+        "briefing": {
+          "$ref": "#/$defs/NarrativeRef"
+        },
+        "debrief": {
+          "$ref": "#/$defs/NarrativeRef"
+        },
+        "objectives": {
+          "default": [],
+          "maxItems": 16,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Objective"
+          }
+        },
+        "aar": {
+          "default": {},
+          "type": "object",
+          "properties": {
+            "fields": {
+              "default": [],
+              "maxItems": 24,
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/AarField"
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "outcomes": {
+          "default": [],
+          "maxItems": 8,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/MissionOutcome"
+          }
+        },
+        "locked": {
+          "default": false,
+          "type": "boolean"
+        },
+        "repeatable": {
+          "default": false,
+          "type": "boolean"
+        },
+        "tags": {
+          "default": [],
+          "maxItems": 32,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          }
+        }
+      },
+      "required": [
+        "key",
+        "name"
+      ],
+      "additionalProperties": false
+    },
+    "InlineScenario": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "lore": {
+          "type": "string",
+          "maxLength": 20000
+        },
+        "tableSize": {
+          "type": "object",
+          "properties": {
+            "width": {
+              "type": "integer",
+              "minimum": 6,
+              "maximum": 120
+            },
+            "depth": {
+              "type": "integer",
+              "minimum": 6,
+              "maximum": 120
+            },
+            "unit": {
+              "default": "in",
+              "type": "string",
+              "enum": [
+                "in",
+                "cm"
+              ]
+            }
+          },
+          "required": [
+            "width",
+            "depth"
+          ],
+          "additionalProperties": false
+        },
+        "roundLimit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 12
+        },
+        "hardpoints": {
+          "default": 0,
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 12
+        },
+        "pois": {
+          "default": [],
+          "maxItems": 16,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "text": {
+                "type": "string",
+                "maxLength": 4000
+              }
+            },
+            "required": [
+              "key",
+              "name"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "forces": {
+          "type": "object",
+          "properties": {
+            "symmetric": {
+              "default": true,
+              "type": "boolean"
+            },
+            "sides": {
+              "default": [],
+              "maxItems": 4,
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/ScenarioSide"
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "deployment": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string",
+              "maxLength": 4000
+            },
+            "zones": {
+              "default": [],
+              "maxItems": 8,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "side": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64,
+                    "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+                  },
+                  "text": {
+                    "type": "string",
+                    "maxLength": 280
+                  }
+                },
+                "required": [
+                  "side",
+                  "text"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "text"
+          ],
+          "additionalProperties": false
+        },
+        "specialRules": {
+          "default": [],
+          "maxItems": 16,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "text": {
+                "type": "string",
+                "maxLength": 4000
+              }
+            },
+            "required": [
+              "key",
+              "name"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "scoring": {
+          "default": [],
+          "maxItems": 32,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ScoringRule"
+          }
+        },
+        "endConditions": {
+          "default": [],
+          "maxItems": 8,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+              },
+              "text": {
+                "type": "string",
+                "maxLength": 280
+              }
+            },
+            "required": [
+              "key",
+              "text"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "scoreLabel": {
+          "default": "VP",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "campaignReward": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "tags": {
+          "default": [],
+          "maxItems": 32,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          }
+        }
+      },
+      "required": [
+        "name",
+        "tableSize",
+        "roundLimit",
+        "forces",
+        "deployment"
+      ],
+      "additionalProperties": false
+    },
+    "Objective": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 280
+        },
+        "primary": {
+          "default": false,
+          "type": "boolean"
+        },
+        "points": {
+          "type": "integer",
+          "minimum": -99,
+          "maximum": 99
+        }
+      },
+      "required": [
+        "key",
+        "text"
+      ],
+      "additionalProperties": false
+    },
+    "AarField": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "boolean",
+            "number",
+            "choice",
+            "text"
+          ]
+        },
+        "options": {
+          "maxItems": 64,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              }
+            },
+            "required": [
+              "value",
+              "label"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "min": {
+          "type": "number"
+        },
+        "max": {
+          "type": "number"
+        },
+        "default": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "string",
+              "maxLength": 280
+            }
+          ]
+        },
+        "help": {
+          "type": "string",
+          "maxLength": 280
+        },
+        "scope": {
+          "type": "string",
+          "enum": [
+            "mission",
+            "operator"
+          ]
+        },
+        "onValue": {
+          "default": [],
+          "maxItems": 16,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string",
+                    "maxLength": 280
+                  }
+                ]
+              },
+              "effects": {
+                "default": [],
+                "maxItems": 64,
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/Effect"
+                }
+              }
+            },
+            "required": [
+              "value"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "perUnit": {
+          "default": [],
+          "maxItems": 64,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Effect"
+          }
+        }
+      },
+      "required": [
+        "key",
+        "label",
+        "kind",
+        "scope"
+      ],
+      "additionalProperties": false
+    },
+    "MissionOutcome": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "effects": {
+          "default": [],
+          "maxItems": 64,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Effect"
+          }
+        },
+        "narrative": {
+          "$ref": "#/$defs/NarrativeRef"
+        }
+      },
+      "required": [
+        "key",
+        "name"
+      ],
+      "additionalProperties": false
+    },
+    "Ladder": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "scope": {
+          "default": "operator",
+          "type": "string",
+          "enum": [
+            "operator",
+            "team",
+            "campaign"
+          ]
+        },
+        "states": {
+          "default": [],
+          "maxItems": 16,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "text": {
+                "type": "string",
+                "maxLength": 280
+              },
+              "onEnter": {
+                "default": [],
+                "maxItems": 64,
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/Effect"
+                }
+              },
+              "tags": {
+                "default": [],
+                "maxItems": 32,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 64,
+                  "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+                }
+              }
+            },
+            "required": [
+              "key",
+              "name"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "initial": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "transitions": {
+          "default": [],
+          "maxItems": 32,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "from": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64,
+                    "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+                  },
+                  {
+                    "type": "string",
+                    "const": "*"
+                  }
+                ]
+              },
+              "to": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+              },
+              "when": {
+                "$ref": "#/$defs/Condition"
+              },
+              "effects": {
+                "default": [],
+                "maxItems": 64,
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/Effect"
+                }
+              }
+            },
+            "required": [
+              "from",
+              "to"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "key",
+        "name",
+        "initial"
+      ],
+      "additionalProperties": false
+    },
+    "Pool": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "initial": {
+          "default": 0,
+          "type": "integer",
+          "minimum": -9999,
+          "maximum": 9999
+        },
+        "min": {
+          "default": 0,
+          "type": "integer",
+          "minimum": -9999,
+          "maximum": 9999
+        },
+        "max": {
+          "type": "integer",
+          "minimum": -9999,
+          "maximum": 9999
+        },
+        "refresh": {
+          "default": [],
+          "maxItems": 8,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "on": {
+                "type": "string",
+                "enum": [
+                  "onCampaignStart",
+                  "onStageStart",
+                  "onMissionStart",
+                  "onMissionResolved",
+                  "onStageEnd",
+                  "onTrackMilestone",
+                  "onOperatorKia"
+                ]
+              },
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "set",
+                  "add"
+                ]
+              },
+              "amount": {
+                "type": "integer",
+                "minimum": -9999,
+                "maximum": 9999
+              },
+              "when": {
+                "$ref": "#/$defs/Condition"
+              }
+            },
+            "required": [
+              "on",
+              "mode",
+              "amount"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "key",
+        "name"
+      ],
+      "additionalProperties": false
+    },
+    "Track": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "min": {
+          "default": 0,
+          "type": "integer",
+          "minimum": -999,
+          "maximum": 999
+        },
+        "max": {
+          "type": "integer",
+          "minimum": -999,
+          "maximum": 999
+        },
+        "initial": {
+          "default": 0,
+          "type": "integer",
+          "minimum": -999,
+          "maximum": 999
+        },
+        "milestones": {
+          "default": [],
+          "maxItems": 32,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Milestone"
+          }
+        }
+      },
+      "required": [
+        "key",
+        "name",
+        "max"
+      ],
+      "additionalProperties": false
+    },
+    "Milestone": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "at": {
+          "type": "integer",
+          "minimum": -999,
+          "maximum": 999
+        },
+        "once": {
+          "default": true,
+          "type": "boolean"
+        },
+        "effects": {
+          "default": [],
+          "maxItems": 64,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Effect"
+          }
+        },
+        "narrative": {
+          "$ref": "#/$defs/NarrativeRef"
+        }
+      },
+      "required": [
+        "key",
+        "at"
+      ],
+      "additionalProperties": false
+    },
+    "NarrativeBlock": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 20000
+        },
+        "speaker": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "tags": {
+          "default": [],
+          "maxItems": 32,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          }
+        },
+        "when": {
+          "$ref": "#/$defs/Condition"
+        }
+      },
+      "required": [
+        "key",
+        "text"
+      ],
+      "additionalProperties": false
+    },
+    "Trigger": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "on": {
+          "type": "string",
+          "enum": [
+            "onCampaignStart",
+            "onStageStart",
+            "onMissionStart",
+            "onMissionResolved",
+            "onStageEnd",
+            "onTrackMilestone",
+            "onOperatorKia"
+          ]
+        },
+        "filter": {
+          "type": "object",
+          "properties": {
+            "stage": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+            },
+            "mission": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+            },
+            "track": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+            },
+            "milestone": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+            }
+          },
+          "additionalProperties": false
+        },
+        "when": {
+          "$ref": "#/$defs/Condition"
+        },
+        "once": {
+          "default": false,
+          "type": "boolean"
+        },
+        "effects": {
+          "default": [],
+          "maxItems": 64,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Effect"
+          }
+        },
+        "narrative": {
+          "$ref": "#/$defs/NarrativeRef"
+        }
+      },
+      "required": [
+        "key",
+        "on"
+      ],
+      "additionalProperties": false
+    },
+    "Errata": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "keyword"
+            },
+            "target": {
+              "$ref": "#/$defs/Ref"
+            },
+            "note": {
+              "type": "string",
+              "maxLength": 280
+            },
+            "set": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                },
+                "appliesTo": {
+                  "type": "string",
+                  "enum": [
+                    "weapon",
+                    "model"
+                  ]
+                },
+                "param": {
+                  "type": "string",
+                  "const": "X"
+                },
+                "gist": {
+                  "type": "string",
+                  "maxLength": 280
+                },
+                "byRuleset": {
+                  "type": "object",
+                  "propertyNames": {
+                    "$ref": "#/$defs/Ref"
+                  },
+                  "additionalProperties": {
+                    "type": "string",
+                    "maxLength": 4000
+                  }
+                },
+                "tags": {
+                  "maxItems": 32,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64,
+                    "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "kind",
+            "target",
+            "set"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "faction"
+            },
+            "target": {
+              "$ref": "#/$defs/Ref"
+            },
+            "note": {
+              "type": "string",
+              "maxLength": 280
+            },
+            "set": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                },
+                "code": {
+                  "type": "string",
+                  "maxLength": 16
+                },
+                "side": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 64,
+                  "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+                },
+                "text": {
+                  "type": "string",
+                  "maxLength": 4000
+                },
+                "tags": {
+                  "maxItems": 32,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64,
+                    "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "kind",
+            "target",
+            "set"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "force"
+            },
+            "target": {
+              "$ref": "#/$defs/Ref"
+            },
+            "note": {
+              "type": "string",
+              "maxLength": 280
+            },
+            "set": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                },
+                "faction": {
+                  "$ref": "#/$defs/Ref"
+                },
+                "forceRule": {
+                  "type": "string",
+                  "maxLength": 4000
+                },
+                "battleDrills": {
+                  "maxItems": 8,
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/Ability"
+                  }
+                },
+                "armory": {
+                  "maxItems": 12,
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/ArmoryItem"
+                  }
+                },
+                "dusterArmory": {
+                  "maxItems": 12,
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/ArmoryItem"
+                  }
+                },
+                "tags": {
+                  "maxItems": 32,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64,
+                    "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "kind",
+            "target",
+            "set"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "unit"
+            },
+            "target": {
+              "$ref": "#/$defs/Ref"
+            },
+            "note": {
+              "type": "string",
+              "maxLength": 280
+            },
+            "set": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                },
+                "faction": {
+                  "$ref": "#/$defs/Ref"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "infantry",
+                    "handler",
+                    "duster",
+                    "vehicle",
+                    "hostile"
+                  ]
+                },
+                "code": {
+                  "type": "string",
+                  "maxLength": 32
+                },
+                "skill": {
+                  "type": "integer",
+                  "minimum": 2,
+                  "maximum": 10
+                },
+                "move": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 24
+                },
+                "armor": {
+                  "$ref": "#/$defs/Armor"
+                },
+                "grunts": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9
+                },
+                "modelCount": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 20
+                },
+                "combatLoads": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9
+                },
+                "weapons": {
+                  "maxItems": 8,
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/Weapon"
+                  }
+                },
+                "specialists": {
+                  "maxItems": 8,
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/Specialist"
+                  }
+                },
+                "rules": {
+                  "maxItems": 8,
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/UnitRule"
+                  }
+                },
+                "keywords": {
+                  "maxItems": 16,
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/KeywordRef"
+                  }
+                },
+                "damageTracks": {
+                  "maxItems": 4,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "key": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 64,
+                        "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+                      },
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80
+                      },
+                      "size": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 12
+                      }
+                    },
+                    "required": [
+                      "key",
+                      "name",
+                      "size"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "behavior": {
+                  "maxItems": 16,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64,
+                    "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+                  }
+                },
+                "source": {
+                  "type": "object",
+                  "properties": {
+                    "edition": {
+                      "type": "string",
+                      "maxLength": 32
+                    },
+                    "custom": {
+                      "type": "boolean"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "text": {
+                  "type": "string",
+                  "maxLength": 4000
+                },
+                "tags": {
+                  "maxItems": 32,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64,
+                    "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "kind",
+            "target",
+            "set"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "ruleset"
+            },
+            "target": {
+              "$ref": "#/$defs/Ref"
+            },
+            "note": {
+              "type": "string",
+              "maxLength": 280
+            },
+            "set": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                },
+                "startingCp": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 20
+                },
+                "cpCaps": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64,
+                    "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+                  },
+                  "additionalProperties": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 99
+                  }
+                },
+                "roundLimit": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 12
+                },
+                "dusterRules": {
+                  "type": "string",
+                  "enum": [
+                    "core",
+                    "impact-frontline",
+                    "impact-chart"
+                  ]
+                },
+                "coverModel": {
+                  "type": "string",
+                  "enum": [
+                    "binary",
+                    "full-partial"
+                  ]
+                },
+                "unitLimits": {
+                  "maxItems": 64,
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/FieldCheck"
+                  }
+                },
+                "rosterModes": {
+                  "maxItems": 3,
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/RosterMode"
+                  }
+                },
+                "text": {
+                  "type": "string",
+                  "maxLength": 4000
+                },
+                "tags": {
+                  "maxItems": 32,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64,
+                    "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "kind",
+            "target",
+            "set"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "calibration"
+            },
+            "target": {
+              "$ref": "#/$defs/Ref"
+            },
+            "note": {
+              "type": "string",
+              "maxLength": 280
+            },
+            "set": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                },
+                "rulesets": {
+                  "maxItems": 8,
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/Ref"
+                  }
+                },
+                "checks": {
+                  "maxItems": 64,
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/FieldCheck"
+                  }
+                },
+                "outliers": {
+                  "type": "object",
+                  "properties": {
+                    "fields": {
+                      "minItems": 1,
+                      "maxItems": 12,
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "skill",
+                          "move",
+                          "armor.dice",
+                          "armor.target",
+                          "grunts",
+                          "combatLoads",
+                          "specialists",
+                          "weapons",
+                          "rules",
+                          "keywords",
+                          "weapon.maxRange",
+                          "weapon.damage"
+                        ]
+                      }
+                    },
+                    "percentile": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 49
+                    }
+                  },
+                  "required": [
+                    "fields",
+                    "percentile"
+                  ],
+                  "additionalProperties": false
+                },
+                "text": {
+                  "type": "string",
+                  "maxLength": 4000
+                },
+                "tags": {
+                  "maxItems": 32,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64,
+                    "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "kind",
+            "target",
+            "set"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "scenario"
+            },
+            "target": {
+              "$ref": "#/$defs/Ref"
+            },
+            "note": {
+              "type": "string",
+              "maxLength": 280
+            },
+            "set": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                },
+                "lore": {
+                  "type": "string",
+                  "maxLength": 20000
+                },
+                "tableSize": {
+                  "type": "object",
+                  "properties": {
+                    "width": {
+                      "type": "integer",
+                      "minimum": 6,
+                      "maximum": 120
+                    },
+                    "depth": {
+                      "type": "integer",
+                      "minimum": 6,
+                      "maximum": 120
+                    },
+                    "unit": {
+                      "default": "in",
+                      "type": "string",
+                      "enum": [
+                        "in",
+                        "cm"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "width",
+                    "depth"
+                  ],
+                  "additionalProperties": false
+                },
+                "roundLimit": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 12
+                },
+                "hardpoints": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 12
+                },
+                "pois": {
+                  "maxItems": 16,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "key": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 64,
+                        "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+                      },
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80
+                      },
+                      "text": {
+                        "type": "string",
+                        "maxLength": 4000
+                      }
+                    },
+                    "required": [
+                      "key",
+                      "name"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "forces": {
+                  "type": "object",
+                  "properties": {
+                    "symmetric": {
+                      "default": true,
+                      "type": "boolean"
+                    },
+                    "sides": {
+                      "default": [],
+                      "maxItems": 4,
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/$defs/ScenarioSide"
+                      }
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "deployment": {
+                  "type": "object",
+                  "properties": {
+                    "text": {
+                      "type": "string",
+                      "maxLength": 4000
+                    },
+                    "zones": {
+                      "default": [],
+                      "maxItems": 8,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "side": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 64,
+                            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+                          },
+                          "text": {
+                            "type": "string",
+                            "maxLength": 280
+                          }
+                        },
+                        "required": [
+                          "side",
+                          "text"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "text"
+                  ],
+                  "additionalProperties": false
+                },
+                "specialRules": {
+                  "maxItems": 16,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "key": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 64,
+                        "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+                      },
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80
+                      },
+                      "text": {
+                        "type": "string",
+                        "maxLength": 4000
+                      }
+                    },
+                    "required": [
+                      "key",
+                      "name"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "scoring": {
+                  "maxItems": 32,
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/ScoringRule"
+                  }
+                },
+                "endConditions": {
+                  "maxItems": 8,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "key": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 64,
+                        "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+                      },
+                      "text": {
+                        "type": "string",
+                        "maxLength": 280
+                      }
+                    },
+                    "required": [
+                      "key",
+                      "text"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "scoreLabel": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                },
+                "campaignReward": {
+                  "type": "string",
+                  "maxLength": 4000
+                },
+                "tags": {
+                  "maxItems": 32,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64,
+                    "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "kind",
+            "target",
+            "set"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "table"
+            },
+            "target": {
+              "$ref": "#/$defs/Ref"
+            },
+            "note": {
+              "type": "string",
+              "maxLength": 280
+            },
+            "set": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                },
+                "text": {
+                  "type": "string",
+                  "maxLength": 4000
+                },
+                "entries": {
+                  "maxItems": 200,
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/TableEntry"
+                  }
+                },
+                "tags": {
+                  "maxItems": 32,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64,
+                    "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "kind",
+            "target",
+            "set"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "campaign"
+            },
+            "target": {
+              "$ref": "#/$defs/Ref"
+            },
+            "note": {
+              "type": "string",
+              "maxLength": 280
+            },
+            "set": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                },
+                "summary": {
+                  "type": "string",
+                  "maxLength": 4000
+                },
+                "intro": {
+                  "type": "string",
+                  "maxLength": 20000
+                },
+                "rulesets": {
+                  "maxItems": 8,
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/Ref"
+                  }
+                },
+                "personas": {
+                  "maxItems": 16,
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/Persona"
+                  }
+                },
+                "roster": {
+                  "$ref": "#/$defs/RosterDef"
+                },
+                "timeline": {
+                  "$ref": "#/$defs/Timeline"
+                },
+                "missions": {
+                  "maxItems": 200,
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/Mission"
+                  }
+                },
+                "ladders": {
+                  "maxItems": 16,
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/Ladder"
+                  }
+                },
+                "pools": {
+                  "maxItems": 16,
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/Pool"
+                  }
+                },
+                "tracks": {
+                  "maxItems": 16,
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/Track"
+                  }
+                },
+                "narratives": {
+                  "maxItems": 500,
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/NarrativeBlock"
+                  }
+                },
+                "triggers": {
+                  "maxItems": 200,
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/Trigger"
+                  }
+                },
+                "assets": {
+                  "maxItems": 64,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "key": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 64,
+                        "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+                      },
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80
+                      },
+                      "text": {
+                        "type": "string",
+                        "maxLength": 280
+                      }
+                    },
+                    "required": [
+                      "key",
+                      "name"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "tags": {
+                  "maxItems": 32,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64,
+                    "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "kind",
+            "target",
+            "set"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    }
+  }
+}

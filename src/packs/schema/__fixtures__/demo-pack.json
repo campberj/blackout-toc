@@ -1,0 +1,366 @@
+{
+  "format": "blkout-pack",
+  "formatVersion": 1,
+  "id": "demo",
+  "version": "0.1.0",
+  "title": "Demo Pack (invented content)",
+  "author": "TOC test suite",
+  "license": "CC0-1.0",
+  "requires": [{ "id": "other-demo", "range": "^1" }],
+  "contentTags": ["test", "fiction"],
+  "content": {
+    "keywords": [
+      {
+        "id": "ricochet",
+        "name": "Ricochet",
+        "appliesTo": "weapon",
+        "param": "X",
+        "gist": "Invented: bounces to X extra targets.",
+        "byRuleset": { "house": "Invented house text.", "other-demo:alt": "Invented alt text." }
+      },
+      { "id": "tethered", "name": "Tethered", "appliesTo": "model", "gist": "Invented: must stay near its leader." }
+    ],
+    "factions": [
+      { "id": "glasswing", "name": "Glasswing Cooperative", "code": "GWC", "side": "salvagers" },
+      { "id": "rust-choir", "name": "Rust Choir", "code": "RCH", "side": "scrappers", "tags": ["hostile"] }
+    ],
+    "forces": [
+      {
+        "id": "lantern-detachment",
+        "name": "Lantern Detachment",
+        "faction": "glasswing",
+        "forceRule": "Invented force rule text.",
+        "battleDrills": [{ "key": "hush", "name": "Hush", "cpCost": 1, "text": "Invented drill." }],
+        "armory": [
+          { "kind": "weapon", "weapon": { "key": "flare-gun", "name": "Flare Gun", "maxRange": 18, "damage": 1, "keywords": [{ "key": "ricochet", "x": 1 }] } },
+          { "kind": "ability", "ability": { "key": "patch-kit", "name": "Patch Kit", "text": "Invented ability." } }
+        ]
+      }
+    ],
+    "units": [
+      {
+        "id": "lantern-wardens",
+        "name": "Lantern Wardens",
+        "faction": "glasswing",
+        "type": "infantry",
+        "skill": 6,
+        "move": 6,
+        "armor": { "dice": 1, "target": 6 },
+        "grunts": 3,
+        "combatLoads": 1,
+        "weapons": [
+          { "key": "lamp-rifle", "name": "Lamp Rifle", "minRange": 4, "maxRange": 16, "damage": 2, "keywords": [{ "key": "ricochet", "x": 1 }] },
+          { "key": "hook", "name": "Hook", "maxRange": 1, "damage": 1, "usesMax": 1 }
+        ],
+        "specialists": [
+          { "key": "lamplighter", "name": "Lamplighter", "skill": 5, "rules": [{ "key": "glow", "name": "Glow", "usesMax": 1, "text": "Invented." }] }
+        ],
+        "rules": [{ "key": "steady", "name": "Steady", "usesMax": 2, "text": "Invented rule." }],
+        "keywords": [{ "key": "tethered" }]
+      },
+      {
+        "id": "warden-captain",
+        "name": "Warden Captain",
+        "faction": "glasswing",
+        "type": "handler",
+        "skill": 5,
+        "move": 6,
+        "armor": { "dice": 2, "target": 6 },
+        "grunts": 1,
+        "combatLoads": 0,
+        "weapons": [{ "key": "baton", "name": "Baton", "maxRange": 1, "damage": 2 }],
+        "damageTracks": [{ "key": "wounds", "name": "Wounds", "size": 2 }]
+      },
+      {
+        "id": "choir-hulk",
+        "name": "Choir Hulk",
+        "faction": "rust-choir",
+        "type": "hostile",
+        "skill": 7,
+        "move": 4,
+        "armor": { "dice": 1, "target": 5 },
+        "grunts": 0,
+        "combatLoads": 0,
+        "weapons": [{ "key": "claw", "name": "Claw", "maxRange": 1, "damage": 2 }],
+        "behavior": ["advance-nearest"]
+      }
+    ],
+    "rulesets": [
+      {
+        "id": "house",
+        "name": "House Rules",
+        "startingCp": 3,
+        "cpCaps": { "chained-activation": 1 },
+        "roundLimit": 5,
+        "dusterRules": "core",
+        "coverModel": "binary",
+        "unitLimits": [
+          { "key": "skill", "field": "skill", "min": 4, "max": 8, "message": "Skill out of range" },
+          { "key": "infantry-dice", "field": "armor.dice", "when": { "types": ["infantry"] }, "in": [1], "message": "Infantry roll 1 armor die" }
+        ],
+        "rosterModes": [
+          {
+            "mode": "matched",
+            "name": "Matched",
+            "groups": { "min": 1, "max": 1 },
+            "forceCardsPerGroup": { "min": 1, "max": 1 },
+            "unitsPerGroup": { "min": 3, "max": 3 },
+            "distinctUnitsPerGroup": true,
+            "handlersPerGroup": { "min": 1, "max": 1 },
+            "dusters": { "max": 1 },
+            "limits": [
+              { "key": "one-outsider", "select": { "tags": ["outsider"] }, "scope": "group", "count": { "max": 1 }, "message": "Max 1 outsider" }
+            ]
+          }
+        ]
+      }
+    ],
+    "calibrations": [
+      {
+        "id": "demo-calibration",
+        "name": "Demo Calibration",
+        "rulesets": ["house"],
+        "checks": [
+          { "key": "skill-regular", "field": "skill", "when": { "types": ["infantry"] }, "min": 6, "message": "Unusually skilled for regulars" },
+          { "key": "two-dice-handlers", "field": "armor.dice", "when": { "exceptTypes": ["handler"] }, "notIn": [2], "message": "2-dice armor is for handlers" }
+        ],
+        "outliers": { "fields": ["move", "grunts"], "percentile": 10 }
+      }
+    ],
+    "scenarios": [
+      {
+        "id": "lamp-recovery",
+        "name": "Lamp Recovery",
+        "lore": "Invented lore.",
+        "tableSize": { "width": 36, "depth": 36 },
+        "roundLimit": 5,
+        "hardpoints": 2,
+        "pois": [{ "key": "north-lamp", "name": "North Lamp" }],
+        "forces": {
+          "symmetric": false,
+          "sides": [
+            { "key": "player", "name": "Player", "rosterMode": "matched" },
+            { "key": "choir", "name": "Choir", "units": [{ "unit": "choir-hulk", "count": 2 }], "behavior": ["advance-nearest"] }
+          ]
+        },
+        "deployment": { "text": "Invented deployment.", "zones": [{ "side": "player", "text": "South edge" }] },
+        "specialRules": [{ "key": "dim-light", "name": "Dim Light", "text": "Invented." }],
+        "scoring": [
+          { "key": "kill", "event": "kill", "label": "Kill", "points": 1 },
+          { "key": "hold-lamp", "event": "poi-control", "label": "Hold the lamp", "points": 2, "timing": { "when": "end-of-round", "rounds": [2, 4] } }
+        ],
+        "endConditions": [{ "key": "rounds", "text": "After round 5" }],
+        "scoreLabel": "LP"
+      }
+    ],
+    "tables": [
+      {
+        "id": "night-events",
+        "name": "Night Events",
+        "entries": [
+          { "key": "quiet", "weight": 3, "label": "Quiet night", "narrative": { "text": "Nothing stirs, {{team.name}}." } },
+          { "key": "cache", "weight": 1, "label": "Supply cache", "effects": [{ "op": "adjustPool", "pool": "supply", "amount": 2 }], "tags": ["loot"] }
+        ]
+      },
+      {
+        "id": "names",
+        "name": "Operator Names",
+        "entries": [
+          { "key": "a", "weight": 1, "label": "Ash", "narrative": { "text": "Ash" } },
+          { "key": "b", "weight": 1, "label": "Birch", "narrative": { "text": "Birch" } }
+        ]
+      }
+    ],
+    "campaigns": [
+      {
+        "id": "long-night",
+        "name": "The Long Night",
+        "summary": "Invented two-stage demo campaign.",
+        "rulesets": ["house"],
+        "personas": [{ "key": "keeper", "name": "The Keeper", "callsign": "KEEPER", "role": "Handler" }],
+        "roster": {
+          "startingTeams": [
+            {
+              "key": "ember",
+              "name": "Team Ember",
+              "operators": [
+                { "key": "wren", "name": "Wren", "unit": "lantern-wardens" },
+                { "name": "Moss", "unit": "lantern-wardens", "stats": { "resolve": 2 } }
+              ]
+            },
+            { "key": "cinder", "name": "Team Cinder" }
+          ],
+          "pick": { "min": 1, "max": 1 },
+          "stats": [{ "key": "resolve", "name": "Resolve", "initial": 1, "min": 0, "max": 5 }],
+          "operatorFields": [
+            { "key": "specialty", "label": "Specialty", "kind": "choice", "options": [{ "value": "scout", "label": "Scout" }, { "value": "medic", "label": "Medic" }] }
+          ],
+          "ranks": [{ "key": "recruit", "name": "Recruit" }, { "key": "veteran", "name": "Veteran", "xp": 10 }],
+          "nameTable": "names"
+        },
+        "timeline": {
+          "stages": [
+            {
+              "key": "dusk",
+              "name": "Dusk",
+              "briefing": "dusk-brief",
+              "slots": [{ "key": "first", "missions": ["recover-lamp"] }]
+            },
+            {
+              "key": "midnight",
+              "name": "Midnight",
+              "slots": [{ "key": "finale", "missions": ["hold-line"] }],
+              "endWhen": { "op": "trackGte", "track": "dread", "value": 10 }
+            }
+          ]
+        },
+        "missions": [
+          {
+            "key": "recover-lamp",
+            "name": "Recover the Lamp",
+            "scenario": "lamp-recovery",
+            "briefing": "dusk-brief",
+            "objectives": [{ "key": "grab", "text": "Secure the north lamp", "primary": true }],
+            "aar": {
+              "fields": [
+                { "key": "kills", "label": "Kills", "kind": "number", "scope": "operator", "min": 0, "perUnit": [{ "op": "addXp", "target": "subject", "amount": 1 }] },
+                {
+                  "key": "injury",
+                  "label": "Injury",
+                  "kind": "choice",
+                  "scope": "operator",
+                  "options": [{ "value": "none", "label": "None" }, { "value": "hurt", "label": "Hurt" }],
+                  "onValue": [{ "value": "hurt", "effects": [{ "op": "stepLadder", "ladder": "condition", "target": "subject", "steps": 1 }] }]
+                }
+              ]
+            },
+            "outcomes": [
+              {
+                "key": "success",
+                "name": "Success",
+                "effects": [
+                  { "op": "addXp", "target": "participants", "amount": 2 },
+                  { "op": "adjustTrack", "track": "dread", "amount": -1 },
+                  { "op": "unlockMission", "mission": "hold-line", "stage": "midnight" },
+                  { "op": "rollTable", "table": "night-events" }
+                ]
+              },
+              {
+                "key": "failure",
+                "name": "Failure",
+                "effects": [
+                  { "op": "adjustTrack", "track": "dread", "amount": 3 },
+                  { "op": "setLadder", "ladder": "readiness", "state": "strained" },
+                  { "op": "showNarrative", "narrative": { "text": "The lamp gutters out.", "speaker": "keeper" } }
+                ]
+              }
+            ]
+          },
+          {
+            "key": "hold-line",
+            "name": "Hold the Line",
+            "locked": true,
+            "scenario": {
+              "name": "Inline Holdout",
+              "tableSize": { "width": 24, "depth": 24 },
+              "roundLimit": 4,
+              "forces": { "sides": [{ "key": "player", "name": "Player" }] },
+              "deployment": { "text": "Invented." },
+              "scoring": [{ "key": "survive", "event": "survive", "label": "Survive", "points": 3, "timing": { "when": "end-of-game" } }]
+            },
+            "outcomes": [
+              { "key": "success", "name": "Dawn", "effects": [{ "op": "promote", "target": "team:ember" }, { "op": "setFlag", "flag": "dawn" }] },
+              { "key": "failure", "name": "Overrun", "effects": [{ "op": "removeOperator", "target": "operator:wren", "reason": "mia" }] }
+            ]
+          }
+        ],
+        "ladders": [
+          {
+            "key": "condition",
+            "name": "Condition",
+            "states": [
+              { "key": "fit", "name": "Fit" },
+              { "key": "hurt", "name": "Hurt" },
+              { "key": "down", "name": "Down", "onEnter": [{ "op": "removeOperator", "target": "subject", "reason": "kia" }] }
+            ],
+            "initial": "fit",
+            "transitions": [{ "from": "*", "to": "down", "effects": [{ "op": "adjustTrack", "track": "dread", "amount": 1 }] }]
+          },
+          {
+            "key": "readiness",
+            "name": "Readiness",
+            "scope": "team",
+            "states": [{ "key": "ready", "name": "Ready" }, { "key": "strained", "name": "Strained" }],
+            "initial": "ready"
+          }
+        ],
+        "pools": [
+          {
+            "key": "supply",
+            "name": "Supply",
+            "initial": 3,
+            "max": 10,
+            "refresh": [{ "on": "onStageStart", "mode": "add", "amount": 2, "when": { "op": "not", "cond": { "op": "flag", "flag": "cut-off" } } }]
+          }
+        ],
+        "tracks": [
+          {
+            "key": "dread",
+            "name": "Dread",
+            "max": 15,
+            "milestones": [
+              {
+                "key": "unease",
+                "at": 5,
+                "effects": [{ "op": "setFlag", "flag": "cut-off" }, { "op": "grantAsset", "asset": "flare-cache", "team": "ember" }],
+                "narrative": "unease-text"
+              },
+              { "key": "reinforce", "at": 10, "once": false, "effects": [{ "op": "addOperator", "team": "ember", "operator": { "unit": "lantern-wardens" } }] }
+            ]
+          }
+        ],
+        "narratives": [
+          { "key": "dusk-brief", "title": "Dusk", "text": "{{team.name}}, the lamps are failing.", "speaker": "keeper" },
+          {
+            "key": "unease-text",
+            "text": "Dread rises to {{ track.dread }}.",
+            "speaker": "keeper",
+            "when": {
+              "op": "all",
+              "of": [
+                { "op": "stageIs", "stage": "dusk" },
+                {
+                  "op": "any",
+                  "of": [
+                    { "op": "poolGte", "pool": "supply", "value": 1 },
+                    { "op": "ladderIs", "ladder": "condition", "target": "roster", "states": ["hurt"], "match": "all" },
+                    { "op": "not", "cond": { "op": "missionOutcome", "mission": "recover-lamp", "outcomes": ["failure"] } }
+                  ]
+                },
+                { "op": "operatorStat", "target": "team:ember", "stat": "resolve", "cmp": "gte", "value": 1 },
+                { "op": "roll", "sides": 6, "gte": 2 }
+              ]
+            },
+            "tags": ["mature-themes"]
+          }
+        ],
+        "triggers": [
+          { "key": "kickoff", "on": "onCampaignStart", "effects": [{ "op": "addTeam", "team": { "key": "spare", "name": "Spare Team" } }], "narrative": "dusk-brief" },
+          { "key": "lost-op", "on": "onOperatorKia", "effects": [{ "op": "adjustPool", "pool": "supply", "amount": -1 }] },
+          {
+            "key": "dread-peak",
+            "on": "onTrackMilestone",
+            "filter": { "track": "dread", "milestone": "reinforce" },
+            "once": true,
+            "effects": [{ "op": "lockMission", "mission": "recover-lamp" }]
+          }
+        ],
+        "assets": [{ "key": "flare-cache", "name": "Flare Cache" }]
+      }
+    ],
+    "errata": [
+      { "kind": "unit", "target": "other-demo:scout-bike", "note": "Invented grunt fix", "set": { "grunts": 2 } },
+      { "kind": "keyword", "target": "other-demo:smolder", "set": { "gist": "Invented corrected gist." } }
+    ]
+  }
+}
