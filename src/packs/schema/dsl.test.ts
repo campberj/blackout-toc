@@ -6,6 +6,7 @@ describe('DSL op sets (frozen at G1 — DESIGN §6)', () => {
     expect(EFFECT_OPS).toEqual([
       'addXp', 'stepLadder', 'setLadder', 'adjustPool', 'adjustTrack', 'setFlag', 'addOperator', 'removeOperator',
       'addTeam', 'unlockMission', 'lockMission', 'rollTable', 'showNarrative', 'grantAsset', 'promote',
+      'adjustStat', 'if',
     ]);
   });
   it('conditions', () => {
@@ -70,4 +71,16 @@ describe('templates', () => {
     expect(TemplateText.safeParse('bad }} text').success).toBe(false);
     expect(TemplateText.safeParse('bad {{1x}}').success).toBe(false);
   });
+});
+
+describe('G1 additions', () => {
+  it('parses nested if/else', () => {
+    const r = Effect.safeParse({
+      op: 'if', cond: { op: 'trackGte', track: 'intel', value: 5 },
+      then: [{ op: 'adjustStat', target: 'participants', stat: 'stress', amount: 1 }],
+      else: [{ op: 'if', cond: { op: 'roll', sides: 10, gte: 6 }, then: [{ op: 'setFlag', flag: 'lucky' }] }],
+    });
+    expect(r.success).toBe(true);
+  });
+  it('rejects if without cond', () => expect(Effect.safeParse({ op: 'if', then: [] }).success).toBe(false));
 });

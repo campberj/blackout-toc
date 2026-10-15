@@ -141,6 +141,21 @@ export const Effect = z
     eff('grantAsset', { asset: Key, team: Key.optional(), count: int(1, 99).default(1) }),
     /** rank absent = next rank on roster.ranks. */
     eff('promote', { target: Target, rank: Key.optional() }),
+    /** Generic operator stat change (custom stats from roster.stats; clamps to min/max). */
+    eff('adjustStat', { target: Target, stat: Key, amount: AMOUNT }),
+    /** Branch without duplicating outcomes. Recursive: getters break the TS inference cycle. */
+    z.strictObject({
+      op: z.literal('if'),
+      get cond(): typeof Condition {
+        return Condition;
+      },
+      get then(): z.ZodArray<typeof Effect> {
+        return z.array(Effect).max(LIMITS.list);
+      },
+      get else(): z.ZodOptional<z.ZodArray<typeof Effect>> {
+        return z.array(Effect).max(LIMITS.list).optional();
+      },
+    }),
   ])
   .meta({ id: 'Effect' });
 

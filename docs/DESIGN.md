@@ -33,6 +33,7 @@ Non-goals (v1): rules adjudication (app tracks state, player resolves dice), AI 
 | D9 | Rules versioned via **ruleset profiles** (Core / S8.1 / S2026 / custom) | Keyword text and CP caps differ across sources |
 | D10 | Default ruleset = **Supplemental 2026** | Latest errata |
 | D11 | Reference pack = **GEMINI / OPERATION COLD IRON** | Exercises tracks + milestones; one window in |
+| D13 | Schemas + DSL frozen at G1; changes need `formatVersion` bump + migration | Published packs must keep loading |
 | D12 | Repo public; Pages source = GitHub Actions | Build output never committed |
 
 ## 3. Architecture
@@ -141,12 +142,14 @@ Seven primitives. Every campaign is a configuration of these.
 **Behavior = closed Effect DSL + Condition DSL** (no scripting, so it's safe to import).
 
 ```
-Effects:    addXp, stepLadder, setLadder, adjustPool, adjustTrack, setFlag,
+Effects:    addXp, adjustStat, stepLadder, setLadder, adjustPool, adjustTrack, setFlag,
             addOperator, removeOperator, addTeam, unlockMission, lockMission,
-            rollTable, showNarrative, grantAsset, promote
+            rollTable, showNarrative, grantAsset, promote, if{cond,then,else}
 Conditions: flag, trackGte, poolGte, missionOutcome, ladderIs, operatorStat,
             stageIs, roll, all/any/not
 ```
+
+Targets: `participants | roster | subject | operator:<key> | team:<key>`. Schema extras accepted at G1: calibration profiles, `RulesetProfile.unitLimits/rosterModes`, campaign personas, assets, ranks, custom stats, name tables, ladder scope (operator/team/campaign), AAR fields with mission/operator scope. **Frozen at G1 (2026-10-15)** — see `src/packs/schema`.
 
 Triggers: `onCampaignStart, onStageStart, onMissionStart, onMissionResolved, onStageEnd, onTrackMilestone, onOperatorKia`.
 
