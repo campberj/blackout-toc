@@ -1,6 +1,6 @@
 # BLKOUT: Tactical Operations Center — Design Document
 
-Status: **DRAFT v0.1 — Gateway 0** · Owner: RJ (APACHE ACTUAL) · Architect: Claude
+Status: **v0.2 — Gateway 0 approved 2026-10-15** · Owner: RJ (APACHE ACTUAL) · Architect: Claude
 
 Fan-made companion tool for BLKOUT (Enemy Spotted Studios). Unofficial; not affiliated with ESS.
 
@@ -31,6 +31,9 @@ Non-goals (v1): rules adjudication (app tracks state, player resolves dice), AI 
 | D7 | Port **one** live campaign as the reference pack | Proves the schema; worked example for the AI guide |
 | D8 | Persistence = IndexedDB behind repository ports; JSON export/import | Backend swap later without feature changes |
 | D9 | Rules versioned via **ruleset profiles** (Core / S8.1 / S2026 / custom) | Keyword text and CP caps differ across sources |
+| D10 | Default ruleset = **Supplemental 2026** | Latest errata |
+| D11 | Reference pack = **GEMINI / OPERATION COLD IRON** | Exercises tracks + milestones; one window in |
+| D12 | Repo public; Pages source = GitHub Actions | Build output never committed |
 
 ## 3. Architecture
 
@@ -208,7 +211,6 @@ Critical path: WP0 → WP1 → WP4 → WP8/WP9. Each WP ends with an architect r
 
 **Assumptions**
 - A1. Players can and will enter official card data themselves (or share packs privately). Without it, F1/F3 have only custom/user units. *Mitigation:* fast card-entry form + paste-import.
-- A2. Supplemental 2026 is the default ruleset profile; Core and S8.1 are selectable.
 - A3. Single device per user until F5 (no sync conflicts).
 - A4. The app tracks state; players roll physical dice. No automated hit/damage resolution.
 
@@ -218,5 +220,6 @@ Critical path: WP0 → WP1 → WP4 → WP8/WP9. Each WP ends with an architect r
 - Seeded replay determinism: any `Math.random()` in the engine breaks replay → lint rule bans it in `domain/`.
 - IndexedDB unavailable (private browsing) → in-memory fallback + export warning.
 
-**Infrastructure blocker**
-- The repo is **private**. GitHub Pages for private repos requires a paid plan (Pro/Team). Otherwise the repo must be made public. Since D3 keeps ESS data out, public is IP-safe. Pages must also be enabled manually: Settings → Pages → Source: *GitHub Actions*.
+**Infrastructure**
+- Resolved: repo public, Pages via Actions (D12).
+- TypeScript pinned 6.0.x until tooling supports TS 7.
