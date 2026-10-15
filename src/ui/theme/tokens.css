@@ -1,0 +1,140 @@
+/*
+ * Design tokens. Dark is the default (low glare at the table); light is used
+ * for print and by user choice. Components consume tokens only, never raw values.
+ */
+:root,
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  /* Surfaces: slate-teal night palette, stepped for elevation. */
+  --c-bg: #0e1619;
+  --c-surface-1: #142027;
+  --c-surface-2: #1b2a31;
+  --c-surface-3: #23363e;
+  --c-border: #2e444d;
+  --c-border-strong: #638390; /* 3:1 vs surfaces (WCAG 1.4.11) */
+
+  /* Text */
+  --c-text: #dfe7e4;
+  --c-text-muted: #9db0b1;
+  --c-text-faint: #7d9395; /* large text / decoration only */
+
+  /* Interactive accent (focus, selection, primary action). */
+  --c-accent: #e8b04a;
+  --c-accent-strong: #f3c56c;
+  --c-on-accent: #1d1404;
+
+  /* Status. Always paired with a glyph or text, never color alone. */
+  --c-ok: #6cc58a;
+  --c-warn: #f08a3c;
+  --c-crit: #f57d72;
+  --c-info: #6fb4e8;
+  --c-neutral: #9db0b1;
+
+  /* Classification strip */
+  --c-banner-bg: #23310f;
+  --c-banner-text: #cfe39a;
+
+  --shadow-dialog: 0 12px 40px rgb(0 0 0 / 0.55);
+  --c-scrim: rgb(4 8 10 / 0.72);
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  --c-bg: #eef2f2;
+  --c-surface-1: #ffffff;
+  --c-surface-2: #f3f6f6;
+  --c-surface-3: #e4eaeb;
+  --c-border: #c3cfd1;
+  --c-border-strong: #6c8084;
+
+  --c-text: #132024;
+  --c-text-muted: #4a5d61;
+  --c-text-faint: #637679;
+
+  --c-accent: #8a5800;
+  --c-accent-strong: #6e4600;
+  --c-on-accent: #ffffff;
+
+  --c-ok: #18703a;
+  --c-warn: #a84a00;
+  --c-crit: #b3261e;
+  --c-info: #1f5d96;
+  --c-neutral: #4a5d61;
+
+  --c-banner-bg: #dfe9c4;
+  --c-banner-text: #2c3a0c;
+
+  --shadow-dialog: 0 12px 40px rgb(10 30 40 / 0.22);
+  --c-scrim: rgb(20 32 36 / 0.45);
+}
+
+:root {
+  /* Type: system stacks only (offline, zero font bytes). */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'Cascadia Mono', 'Roboto Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+
+  /* Minor-third scale from a 16px base. */
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.875rem;
+  --fs-md: 1rem;
+  --fs-lg: 1.1875rem;
+  --fs-xl: 1.4375rem;
+  --fs-2xl: 1.75rem;
+  --fs-3xl: 2.125rem;
+
+  --lh-tight: 1.2;
+  --lh-body: 1.5;
+  --fw-regular: 400;
+  --fw-medium: 560;
+  --fw-bold: 700;
+  --measure: 68ch;
+
+  /* 4px spacing grid */
+  --sp-1: 0.25rem;
+  --sp-2: 0.5rem;
+  --sp-3: 0.75rem;
+  --sp-4: 1rem;
+  --sp-5: 1.5rem;
+  --sp-6: 2rem;
+  --sp-7: 2.5rem;
+  --sp-8: 3rem;
+
+  /* Radii stay small: crisp console panels, slightly softer controls. */
+  --r-xs: 1px;
+  --r-sm: 3px;
+  --r-md: 5px;
+  --r-pill: 999px;
+
+  /* Touch: 44px minimum hit area (WCAG 2.5.5 / Apple HIG). */
+  --touch: 2.75rem;
+  --touch-lg: 3.25rem;
+
+  --focus-ring: 0 0 0 2px var(--c-bg), 0 0 0 4px var(--c-accent);
+
+  --dur-fast: 120ms;
+  --dur-med: 200ms;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+
+  /* Shell metrics */
+  --banner-h: 1.5rem;
+  --header-h: 3.5rem;
+  --tabbar-h: 4rem;
+  --rail-w: 5.75rem;
+  --content-max: 90rem;
+  --gutter: var(--sp-4);
+}
+
+@media (min-width: 768px) {
+  :root {
+    --gutter: var(--sp-5);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0ms;
+    --dur-med: 0ms;
+  }
+}

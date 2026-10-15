@@ -1,0 +1,105 @@
+/*
+ * Print: always light, no chrome. Margins (12mm) sit inside both Letter and A4
+ * printable areas. Card grids flow 2-up; roster sheets start on a new page.
+ */
+@page {
+  margin: 12mm;
+}
+
+@media print {
+  :root,
+  :root[data-theme='dark'],
+  :root[data-theme='light'] {
+    color-scheme: light;
+    --c-bg: #ffffff;
+    --c-surface-1: #ffffff;
+    --c-surface-2: #ffffff;
+    --c-surface-3: #f1f1f1;
+    --c-border: #9a9a9a;
+    --c-border-strong: #333333;
+    --c-text: #000000;
+    --c-text-muted: #333333;
+    --c-text-faint: #555555;
+    --c-accent: #000000;
+    --c-ok: #000000;
+    --c-warn: #000000;
+    --c-crit: #000000;
+    --c-info: #000000;
+    --c-neutral: #000000;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+    color: #000;
+    font-size: 10pt;
+  }
+
+  /* Hide app chrome and interactive-only UI. */
+  .no-print,
+  nav,
+  dialog,
+  [role='dialog'],
+  [role='status'] {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+  .print-only.print-card-grid {
+    display: grid !important;
+  }
+
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: none !important;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  /* Card sheet: 2-up on both Letter (190mm usable) and A4 (186mm usable). */
+  .print-card-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 5mm;
+  }
+
+  .print-card,
+  .print-avoid-break {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .print-roster-sheet {
+    break-before: page;
+    page-break-before: always;
+  }
+  .print-roster-sheet:first-child {
+    break-before: auto;
+    page-break-before: auto;
+  }
+
+  .print-page-break {
+    break-after: page;
+    page-break-after: always;
+  }
+
+  h1,
+  h2,
+  h3 {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
