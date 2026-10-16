@@ -1,0 +1,28 @@
+{
+  "format": "blkout-pack",
+  "formatVersion": 1,
+  "id": "other-demo",
+  "version": "1.2.0",
+  "title": "Other Demo (invented base content)",
+  "author": "TOC test suite",
+  "license": "CC0-1.0",
+  "content": {
+    "keywords": [{ "id": "smolder", "name": "Smolder", "appliesTo": "weapon", "gist": "Invented: lingers a round." }],
+    "factions": [{ "id": "dune-runners", "name": "Dune Runners" }],
+    "units": [
+      {
+        "id": "scout-bike",
+        "name": "Scout Bike",
+        "faction": "dune-runners",
+        "type": "vehicle",
+        "skill": 6,
+        "move": 10,
+        "armor": { "dice": 1, "target": 5 },
+        "grunts": 1,
+        "combatLoads": 0,
+        "weapons": [{ "key": "sidecar-gun", "name": "Sidecar Gun", "maxRange": 18, "damage": 1, "keywords": [{ "key": "smolder" }] }]
+      }
+    ],
+    "rulesets": [{ "id": "alt", "name": "Alt Rules", "startingCp": 2, "roundLimit": 6, "dusterRules": "core", "coverModel": "full-partial" }]
+  }
+}

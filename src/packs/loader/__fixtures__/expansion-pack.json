@@ -1,0 +1,68 @@
+{
+  "format": "blkout-pack",
+  "formatVersion": 1,
+  "id": "ember-expansion",
+  "version": "2.0.0",
+  "title": "Ember Expansion (invented)",
+  "author": "TOC test suite",
+  "license": "CC0-1.0",
+  "requires": [{ "id": "demo", "range": "~0.1.0" }],
+  "content": {
+    "units": [
+      {
+        "id": "ember-scout",
+        "name": "Ember Scout",
+        "faction": "demo:glasswing",
+        "type": "infantry",
+        "skill": 6,
+        "move": 7,
+        "armor": { "dice": 1, "target": 6 },
+        "grunts": 2,
+        "combatLoads": 1,
+        "weapons": [{ "key": "carbine", "name": "Carbine", "maxRange": 12, "damage": 1, "keywords": [{ "key": "demo:ricochet", "x": 1 }, { "key": "other-demo:smolder" }] }]
+      }
+    ],
+    "tables": [
+      {
+        "id": "ember-rumors",
+        "name": "Ember Rumors",
+        "entries": [
+          { "key": "whisper", "weight": 2, "label": "A whisper", "narrative": { "text": "Someone saw a light.", "speaker": "scribe" } },
+          { "key": "chain", "weight": 1, "label": "Chain roll", "effects": [{ "op": "rollTable", "table": "demo:night-events" }] }
+        ]
+      }
+    ],
+    "campaigns": [
+      {
+        "id": "ember-watch",
+        "name": "Ember Watch",
+        "rulesets": ["demo:house"],
+        "personas": [{ "key": "scribe", "name": "The Scribe" }],
+        "roster": {
+          "startingTeams": [{ "key": "ash", "name": "Team Ash", "operators": [{ "key": "kestrel", "unit": "ember-scout" }, { "unit": "demo:lantern-wardens" }] }],
+          "nameTable": "demo:names"
+        },
+        "timeline": { "stages": [{ "key": "watch", "name": "Watch", "slots": [{ "key": "patrol", "missions": ["patrol"] }] }] },
+        "missions": [
+          {
+            "key": "patrol",
+            "name": "Patrol",
+            "scenario": "demo:lamp-recovery",
+            "outcomes": [
+              {
+                "key": "done",
+                "name": "Done",
+                "effects": [
+                  { "op": "rollTable", "table": "ember-rumors" },
+                  { "op": "if", "cond": { "op": "poolGte", "pool": "supply", "value": 2 }, "then": [{ "op": "adjustPool", "pool": "supply", "amount": -2 }] }
+                ]
+              }
+            ]
+          }
+        ],
+        "pools": [{ "key": "supply", "name": "Supply" }]
+      }
+    ],
+    "errata": [{ "kind": "unit", "target": "demo:choir-hulk", "note": "Invented: hulks got slower", "set": { "move": 3 } }]
+  }
+}
