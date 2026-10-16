@@ -1,0 +1,61 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`golden: scripted game > commands → expected state 1`] = `
+[
+  "GameStarted",
+  "InitiativeSet",
+  "PhaseSet",
+  "DrillUsed",
+  "CpSpent",
+  "TokenSet",
+  "LoadSpent",
+  "RuleBoxTicked",
+  "TokenSet",
+  "ModelStatusChanged",
+  "KillCredited",
+  "ObjectiveScored",
+  "CpSpent",
+  "DamageMarked",
+  "TokenSet",
+  "UnitAdded",
+  "Note",
+  "RoundAdvanced",
+  "ModelStatusChanged",
+  "ObjectiveScored",
+  "VpAdjusted",
+  "CpAdjusted",
+  "BurnCardsAdjusted",
+  "ObjectiveAdded",
+  "ObjectiveScored",
+]
+`;
+
+exports[`golden: scripted game > replay equals live state; the log describes every event 1`] = `
+[
+  "Game started: Ember Team",
+  "Ember Team has initiative",
+  "Execution phase",
+  "Lantern Wardens used a battle drill",
+  "Ember Team spent 1 CP (Battle Drill)",
+  "Lantern Wardens: activated",
+  "Lantern Wardens combat loads used: 1",
+  "Lantern Wardens: Lamplighter: Glow 1/1",
+  "Grunt 1 (Lantern Wardens): engaged",
+  "Choir Hulk is destroyed",
+  "Grunt 1 (Lantern Wardens) kills +1",
+  "Ember Team scored Kill",
+  "Choir spent 1 CP (Chained Activation)",
+  "Warden Captain: Wounds 1/2",
+  "Choir Hulk 2: pinned",
+  "Scav Pack joined Choir",
+  "Hulk went down to the hook",
+  "Round 2 begins",
+  "Grunt 2 (Lantern Wardens) is down",
+  "Choir scored Hold the lamp",
+  "Ember Team LP +2",
+  "Ember Team CP +1",
+  "Choir burn cards +2",
+  "Objective added: Recover the ledger (3 LP)",
+  "Ember Team scored Recover the ledger",
+]
+`;

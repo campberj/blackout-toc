@@ -1,8 +1,20 @@
 <script lang="ts">
-  import Page from '../../shell/Page.svelte';
-  import EmptyState from '../../components/EmptyState.svelte';
+  import { router } from '../../router.svelte';
+  import { useAppState } from '../../state/app-context.svelte';
+  import Board from './Board.svelte';
+  import SessionList from './SessionList.svelte';
+
+  // #/dashboard → games list + new game; #/dashboard?session=<id> → live board.
+  const app = useAppState();
+  const session = $derived(router.query.session);
 </script>
 
-<Page title="Game" purpose="Track the round, command points, objectives and every unit's status during play.">
-  <EmptyState title="No game in progress" message="Start a game from a saved roster to open the tracker." icon="dashboard" />
-</Page>
+{#if session && app.status === 'ready'}
+  {#key session}
+    <Board id={session} />
+  {/key}
+{:else if session}
+  <p aria-live="polite">Opening game…</p>
+{:else}
+  <SessionList />
+{/if}
