@@ -16,7 +16,7 @@
   import CardView from '../components/card/CardView.svelte';
   import { toasts } from '../components/toast.svelte';
   import { DEMO_HANDLER, DEMO_RECON } from '../components/card/demo-cards';
-  import { emptyTrackerState } from '../components/card/card-view-model';
+  import { emptyTrackerState } from '$lib/app/view-models/card-view-model';
   import { theme } from '../theme';
 
   let cp = $state(2);

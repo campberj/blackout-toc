@@ -5,7 +5,7 @@
   import Icon from '../../components/Icon.svelte';
   import CardView from '../../components/card/CardView.svelte';
   import { DEMO_CARDS } from '../../components/card/demo-cards';
-  import type { CardVariant } from '../../components/card/card-view-model';
+  import type { CardVariant } from '$lib/app/view-models/card-view-model';
 
   const VIEWS = [
     { id: 'full', label: 'Full' },

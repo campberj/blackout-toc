@@ -1,6 +1,6 @@
 <script lang="ts">
   import PipTrack from '../PipTrack.svelte';
-  import type { CardTrackerState, CardVariant, CardViewModel } from './card-view-model';
+  import type { CardTrackerState, CardVariant, CardViewModel } from '$lib/app/view-models/card-view-model';
 
   /*
    * Shared unit-card renderer (builder, forge, dashboard, print).
@@ -43,7 +43,7 @@
   </header>
 
   <dl class="statline mono">
-    {#each card.stats as s (s.label)}
+    {#each card.stats as s, i (i)}
       <div class="cell"><dt>{s.label}</dt><dd>{s.value}</dd></div>
     {/each}
     <div class="cell"><dt>Armor</dt><dd>{card.armor}</dd></div>
@@ -55,7 +55,7 @@
   <div class="body">
     {#if card.damageTracks.length > 0}
       <section class="sec" aria-label="Damage">
-        {#each card.damageTracks as t, i (t.name)}
+        {#each card.damageTracks as t, i (i)}
           <div class="track-row">
             <span class="track-name">{t.name}</span>
             <PipTrack
@@ -94,7 +94,7 @@
     <section class="sec">
       <h4 class="sec-title">Weapons</h4>
       <ul class="weapons" role="list">
-        {#each card.weapons as w (w.name)}
+        {#each card.weapons as w, i (i)}
           <li><span class="w-name">{w.name}</span> <span class="w-prof mono">{w.profile}</span></li>
         {/each}
       </ul>
@@ -104,7 +104,7 @@
       <section class="sec">
         <h4 class="sec-title">Specialists</h4>
         <ul class="rules" role="list">
-          {#each card.specialists as sp (sp.name)}
+          {#each card.specialists as sp, i (i)}
             <li>
               <span class="r-name">{sp.name}</span>
               {#if sp.text && !compact}<p class="r-text">{sp.text}</p>{/if}
@@ -118,7 +118,7 @@
       <section class="sec">
         <h4 class="sec-title">Rules</h4>
         <ul class="rules" role="list">
-          {#each card.rules as r, i (r.name)}
+          {#each card.rules as r, i (i)}
             <li>
               <div class="r-head">
                 <span class="r-name">{r.name}</span>

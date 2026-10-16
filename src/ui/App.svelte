@@ -11,8 +11,14 @@
   import DashboardPage from './features/dashboard/DashboardPage.svelte';
   import CampaignPage from './features/campaign/CampaignPage.svelte';
   import SettingsPage from './features/settings/SettingsPage.svelte';
+  import StatusBanner from './shell/StatusBanner.svelte';
   import { router, type RoutePath } from './router.svelte';
   import { NAV_ITEMS } from './nav';
+  import { provideAppState } from './state/app-context.svelte';
+
+  // Services + reactive registry/settings for every feature (useAppState()). Startup is async and
+  // non-blocking: pages render immediately and read `app.status`.
+  const app = provideAppState();
 
   const PAGES: Record<Exclude<RoutePath, '/dev/gallery'>, Component> = {
     '/': HomePage,
@@ -69,6 +75,16 @@
     <AppNav items={NAV_ITEMS} current={router.path} />
   </div>
   <main id="main" class="main" tabindex="-1" bind:this={main}>
+    <!-- In-flow (not in the sticky top) so header/rail offsets stay fixed. -->
+    {#if app.status === 'ready' && !app.isPersistent}
+      <StatusBanner message="Browser storage is unavailable (private mode?). Changes last only until this tab closes; export a backup from Settings." />
+    {/if}
+    {#if app.loadErrors.length > 0}
+      <StatusBanner tone="crit" message="Some packs failed to load, so no content is available. Open the Library to fix or disable them." />
+    {/if}
+    {#if app.status === 'failed'}
+      <StatusBanner tone="crit" message="The app could not start: {app.error}" />
+    {/if}
     <div class="content">
       {#if Current}
         <Current />

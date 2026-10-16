@@ -2,7 +2,7 @@
  * Invented demo units for UI review only. Not ESS content: names, factions,
  * stats and rules are original placeholders.
  */
-import type { CardViewModel } from './card-view-model';
+import type { CardViewModel } from '$lib/app/view-models/card-view-model';
 
 export const DEMO_RECON: CardViewModel = {
   id: 'demo:kestrel-cell',
