@@ -33,8 +33,11 @@ Non-goals (v1): rules adjudication (app tracks state, player resolves dice), AI 
 | D9 | Rules versioned via **ruleset profiles** (Core / S8.1 / S2026 / custom) | Keyword text and CP caps differ across sources |
 | D10 | Default ruleset = **Supplemental 2026** | Latest errata |
 | D11 | Reference pack = **GEMINI / OPERATION COLD IRON** | Exercises tracks + milestones; one window in |
-| D13 | Schemas + DSL frozen at G1; changes need `formatVersion` bump + migration | Published packs must keep loading |
 | D12 | Repo public; Pages source = GitHub Actions | Build output never committed |
+| D13 | Schemas + DSL frozen at G1; changes need `formatVersion` bump + migration | Published packs must keep loading |
+| D14 | Official card data lives in user-made pack id **`blkout`**; local id = printed card code lowercased (`blkout:tfb-9861`, `blkout:hndl-224`) | Independently typed packs agree on ids without sharing ESS data |
+| D15 | GEMINI reference pack ships **public** in `packs/` — narrative only, fan-content attribution, no ESS stats/rules text | Worked example for authors and AI guide |
+| D16 | Reference pack scope = full framework + Window 1 + generic later windows | Playable beyond W1 without inventing the Intel-15 reveal |
 
 ## 3. Architecture
 
@@ -196,9 +199,10 @@ Triggers: `onCampaignStart, onStageStart, onMissionStart, onMissionResolved, onS
 | WP3 | Persistence ports + IndexedDB adapter + migrations | WP1 | Platform |
 | WP4 | Campaign engine: primitives, effect/condition interpreters, RNG, replay | WP1 | Engine |
 | WP5 | UI shell, design system, card renderer, print CSS | WP0 | UI |
-| WP6 | F1 roster builder + F2 forge | WP2, WP3, WP5 | UI |
-| WP7 | F3 dashboard (event-sourced session) | WP2, WP3, WP5 | UI |
-| WP8 | F4 campaign UI (brief, AAR, roster, debrief, import) | WP4, WP6 | UI |
+| WPA | App services: pack library, roster/session/campaign services, card mapper, Svelte stores | WP2, WP3, WP4, WP5 | Platform |
+| WP6 | F1 roster builder + F2 forge | WPA | UI |
+| WP7 | F3 dashboard (event-sourced session) | WPA | UI |
+| WP8 | F4 campaign UI (brief, AAR, roster, debrief, import) | WPA | UI |
 | WP9 | Reference campaign pack + PACK_FORMAT.md + CAMPAIGN_AUTHORING_GUIDE.md | WP4 | Content |
 
 Critical path: WP0 → WP1 → WP4 → WP8/WP9. Each WP ends with an architect review against this document.
