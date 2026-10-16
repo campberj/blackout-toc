@@ -19,4 +19,9 @@ export default ts.config(
       'no-restricted-imports': ['error', { patterns: ['svelte', 'svelte/*', '*.svelte', '**/adapters/**', '**/ui/**'] }],
     },
   },
+  // App layer may use ports/domain/packs, never UI (dependencies point inward — DESIGN §3).
+  {
+    files: ['src/app/**/*.ts'],
+    rules: { 'no-restricted-imports': ['error', { patterns: ['svelte', 'svelte/*', '*.svelte', '**/ui/**'] }] },
+  },
 );

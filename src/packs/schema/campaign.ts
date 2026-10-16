@@ -7,6 +7,9 @@ import { InlineScenario } from './scenario';
 // The seven campaign primitives (DESIGN §6) + missions and triggers.
 // Keys inside a campaign are campaign-scoped slugs; cross-pack refs (units, tables, scenarios) use Ref.
 
+/** Stats every operator has regardless of pack (engine-maintained). Shared by loader validation and engine. */
+export const BUILTIN_STATS = ['xp', 'kills', 'missions'] as const;
+
 export const TRIGGER_EVENTS = [
   'onCampaignStart',
   'onStageStart',

@@ -6,8 +6,8 @@ import type { REMOVE_REASONS } from '$lib/packs/schema';
 export type RemoveReason = (typeof REMOVE_REASONS)[number];
 export type MissionStatus = 'locked' | 'available' | 'active' | 'resolved';
 
-/** Stats every operator has regardless of pack: `xp` (addXp, promotion), `kills`, `missions` (AAR auto-increments). */
-export const BUILTIN_STATS = ['xp', 'kills', 'missions'] as const;
+/** Built-in stats: `xp` (addXp, promotion), `kills`, `missions` (AAR auto-increments). Defined in the schema. */
+export { BUILTIN_STATS } from '../../packs/schema';
 
 export interface HistoryEntry {
   /** Event seq that caused it. */

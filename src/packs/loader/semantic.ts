@@ -1,3 +1,4 @@
+import { BUILTIN_STATS } from '../schema';
 import { Campaign, type Condition, type Effect, Key, NarrativeRef, type Pack, Table } from '../schema';
 import type { Campaign as CampaignT, Table as TableT } from '../schema';
 import { packOf } from './content-kinds';
@@ -30,7 +31,6 @@ export function validateRefs(pack: Pack, deps: ReadonlySet<string>, loaded: Read
 
 // ── Campaign-internal keys ───────────────────────────────────────────────
 
-const BUILTIN_STATS = ['xp', 'kills'];
 
 interface CampaignKeys {
   missions: Map<string, Set<string>>; // mission → outcome keys

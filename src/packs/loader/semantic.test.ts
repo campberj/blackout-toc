@@ -170,3 +170,12 @@ describe('semantic validation: shared tables', () => {
     valueOf(loadPacks([demo, other]));
   });
 });
+
+describe('built-in stats', () => {
+  it.each(['xp', 'kills', 'missions'])('accepts operatorStat on built-in %s', (stat) => {
+    const errs = withCampaign((c) => {
+      c.missions[0].outcomes[0].effects.push({ op: 'if', cond: { op: 'operatorStat', target: 'participants', stat, value: 1 }, then: [] });
+    });
+    expect(errs).toEqual([]);
+  });
+});

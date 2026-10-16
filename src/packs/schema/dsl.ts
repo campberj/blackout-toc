@@ -21,7 +21,7 @@ export const Target = z
 export const Quantifier = z.enum(['any', 'all', 'none']).default('any');
 
 /** Template text: `{{var}}` placeholders, var = dotted identifier. */
-const VAR_RE = /\{\{\s*([A-Za-z_][\w.]*)\s*\}\}/g;
+const VAR_RE = /\{\{\s*([A-Za-z_][\w.-]*)\s*\}\}/g;
 export const TemplateText = LongText.refine(
   (s) => !s.replace(VAR_RE, '').includes('{{') && !s.replace(VAR_RE, '').includes('}}'),
   'Malformed {{var}} placeholder',

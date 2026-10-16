@@ -84,3 +84,10 @@ describe('G1 additions', () => {
   });
   it('rejects if without cond', () => expect(Effect.safeParse({ op: 'if', then: [] }).success).toBe(false));
 });
+
+describe('review fixes', () => {
+  it('template vars accept slug keys with dashes', () => {
+    expect(TemplateText.safeParse('Intel at {{track.gemini-intel}}').success).toBe(true);
+    expect(templateVars('{{ pool.sector-stability.name }}')).toEqual(['pool.sector-stability.name']);
+  });
+});
