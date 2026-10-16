@@ -8,6 +8,14 @@ import { createPackLibrary, type LibrarySnapshot, type PackLibrary } from './pac
 import { randomId, randomSeed, type BundledPackSource, type IdSource, type SeedSource, type ThemePort } from './ports';
 import { createRosterService, type RosterService } from './roster-service';
 import { createSettingsService, type SettingsService } from './settings-service';
+import type { GameCampaignBridge } from './contracts/game-campaign';
+
+/** Placeholder until the session service (WP7) lands; WP7 replaces this wiring. */
+const unavailableBridge: GameCampaignBridge = {
+  launch: () => Promise.reject(new Error('Game dashboard not available yet')),
+  prefillFor: () => Promise.resolve(undefined),
+  consume: () => Promise.resolve(),
+};
 
 // Composition root (DIP): features receive this context and never touch storage, loader or engine.
 
@@ -26,6 +34,8 @@ export interface AppContext {
   readonly campaigns: CampaignService;
   readonly rosters: RosterService;
   readonly customUnits: CustomUnitService;
+  /** Campaign ↔ dashboard handoff (ISP: the campaign UI sees only this). */
+  readonly gameBridge: GameCampaignBridge;
   /** Current loaded content (changes on pack import/enable/disable/remove). */
   snapshot(): LibrarySnapshot;
   activeRulesetId(): Id | undefined;
@@ -57,6 +67,7 @@ export async function createAppContext(storage: Storage, bundled: BundledPackSou
     }),
     rosters: createRosterService({ storage, content: snapshot, activeRulesetId, newId }),
     customUnits: createCustomUnitService({ library, activeRulesetId }),
+    gameBridge: unavailableBridge,
     snapshot,
     activeRulesetId,
     cardContext: () => ({ lookup: library.snapshot.registry, rulesetId: activeRulesetId() }),

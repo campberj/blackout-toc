@@ -1,5 +1,6 @@
 // App layer public API: features import from here (or src/ui/state), never from storage/loader/engine.
 export { createAppContext, type AppContext, type AppContextOptions } from './context';
+export type * from './contracts/game-campaign';
 export { createStorage, type AppStorage, type StorageOptions } from './storage';
 export * from './ports';
 export { createEmitter, type Emitter } from './emitter';
