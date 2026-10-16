@@ -55,8 +55,8 @@ export class AppState {
 
 /** Browser composition: IndexedDB (memory fallback) + bundled packs + UI theme store. */
 export async function bootApp(): Promise<AppContext> {
-  const { storage } = await createStorage();
-  return createAppContext(storage, bundledPacks, { theme: { get: () => theme.choice, set: (c) => theme.set(c) } });
+  const { storage, backup } = await createStorage();
+  return createAppContext(storage, bundledPacks, { backup, theme: { get: () => theme.choice, set: (c) => theme.set(c) } });
 }
 
 /** Call once from the root component's init. */

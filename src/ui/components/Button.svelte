@@ -8,15 +8,23 @@
     variant?: Variant;
     size?: 'md' | 'lg';
     block?: boolean;
+    /** Render as a link styled as a button (navigation, not an action). */
+    href?: string;
     children: Snippet;
   }
 
-  let { variant = 'secondary', size = 'md', block = false, type = 'button', children, ...rest }: Props = $props();
+  let { variant = 'secondary', size = 'md', block = false, type = 'button', href, children, ...rest }: Props = $props();
 </script>
 
-<button {type} class="btn {variant} {size}" class:block {...rest}>
-  {@render children()}
-</button>
+{#if href !== undefined}
+  <a {href} class="btn {variant} {size}" class:block aria-label={rest['aria-label']} aria-current={rest['aria-current']} title={rest.title}>
+    {@render children()}
+  </a>
+{:else}
+  <button {type} class="btn {variant} {size}" class:block {...rest}>
+    {@render children()}
+  </button>
+{/if}
 
 <style>
   .btn {
@@ -37,6 +45,7 @@
       background-color var(--dur-fast) var(--ease),
       border-color var(--dur-fast) var(--ease);
     touch-action: manipulation;
+    text-decoration: none;
   }
   .lg {
     min-height: var(--touch-lg);

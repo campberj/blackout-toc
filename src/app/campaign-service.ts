@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { StoredEvent } from './stored-event';
 import {
   createCampaignEngine,
   type CampaignCommandInput,
@@ -16,14 +17,6 @@ import type { IdSource, SeedSource } from './ports';
 
 // Campaign saves: event log + metadata, write-through on every accepted command (DESIGN §6, §8).
 
-// `cmd` (undo unit) is absent in saves written before per-command undo; engine.load fills it in.
-const StoredEvent = z.object({
-  seq: z.number().int().min(1),
-  cmd: z.number().int().min(1).optional(),
-  type: z.string().min(1),
-  at: z.string().optional(),
-  payload: z.unknown(),
-});
 
 export const CampaignSave = z.object({
   id: z.string().min(1).max(64),
@@ -68,6 +61,8 @@ export interface CreateCampaignInput {
   readonly campaign: Id;
   readonly teams: StartCampaignInput['teams'];
   readonly excludedTags?: string[];
+  /** Required when the campaign defines `factions`. */
+  readonly faction?: string;
   /** Override for reproducible tests; defaults to the injected SeedSource. */
   readonly seed?: number;
 }
@@ -210,6 +205,7 @@ export function createCampaignService(deps: CampaignServiceDeps): CampaignServic
           teams: input.teams,
           packs: packVersions,
           excludedTags: input.excludedTags ?? [...(deps.excludedTags?.() ?? [])],
+          ...(input.faction === undefined ? {} : { faction: input.faction }),
         },
         { at: at() },
       );

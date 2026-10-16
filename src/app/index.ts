@@ -34,6 +34,41 @@ export {
   type NewRosterInput,
 } from './roster-service';
 export { createCustomUnitService, slugify, type CustomUnitService, type UnitDraft, type SavedUnit } from './custom-unit-service';
+export {
+  createSessionService,
+  SessionRecord,
+  type SessionService,
+  type OpenSession,
+  type SessionSummary,
+  type NewSessionInput,
+  type Accepted as SessionAccepted,
+} from './session-service';
+export {
+  MODEL_STATUSES,
+  PHASES,
+  SIDES,
+  dueObjectives,
+  findModel,
+  findUnit,
+  hasDamage,
+  isOut,
+  score,
+  timingText,
+  unitsOf,
+  type CustomContact,
+  type GameCommandInput,
+  type GameIssue,
+  type GameRejection,
+  type GameState,
+  type LogEntry,
+  type ModelState,
+  type ModelStatus,
+  type ObjectiveState,
+  type Phase,
+  type Side,
+  type SideState,
+  type UnitState,
+} from '../domain/game';
 export { createSettingsService, DEFAULT_RULESET_SUFFIX, type SettingsService, type AppSettings } from './settings-service';
 export {
   toCardViewModel,

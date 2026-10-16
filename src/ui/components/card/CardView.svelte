@@ -1,3 +1,12 @@
+<script lang="ts" module>
+  /** One tap on a live card; `index` aligns with the VM arrays (0 for loads). */
+  export interface CardTrackerChange {
+    kind: 'damage' | 'rule' | 'loads';
+    index: number;
+    value: number;
+  }
+</script>
+
 <script lang="ts">
   import PipTrack from '../PipTrack.svelte';
   import type { CardTrackerState, CardVariant, CardViewModel } from '$lib/app/view-models/card-view-model';
@@ -6,14 +15,16 @@
    * Shared unit-card renderer (builder, forge, dashboard, print).
    * Pass `tracker` (bindable) to make use-boxes, loads and damage tappable;
    * without it the boxes render empty and read-only (reference / print).
+   * With `ontrack`, taps are reported instead of mutating `tracker` (event-sourced callers).
    */
   interface Props {
     card: CardViewModel;
     variant?: CardVariant;
     tracker?: CardTrackerState;
+    ontrack?: (change: CardTrackerChange) => void;
   }
 
-  let { card, variant = 'full', tracker = $bindable() }: Props = $props();
+  let { card, variant = 'full', tracker = $bindable(), ontrack }: Props = $props();
 
   const uid = $props.id();
   const live = $derived(tracker !== undefined && variant !== 'print');
@@ -21,13 +32,16 @@
   const Heading = $derived(compact ? 'h3' : 'h2');
 
   function setRuleUse(i: number, v: number) {
-    if (tracker) tracker.ruleUses[i] = v;
+    if (ontrack) ontrack({ kind: 'rule', index: i, value: v });
+    else if (tracker) tracker.ruleUses[i] = v;
   }
   function setDamage(i: number, v: number) {
-    if (tracker) tracker.damage[i] = v;
+    if (ontrack) ontrack({ kind: 'damage', index: i, value: v });
+    else if (tracker) tracker.damage[i] = v;
   }
   function setLoads(v: number) {
-    if (tracker) tracker.combatLoadsUsed = v;
+    if (ontrack) ontrack({ kind: 'loads', index: 0, value: v });
+    else if (tracker) tracker.combatLoadsUsed = v;
   }
 </script>
 

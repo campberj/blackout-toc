@@ -17,6 +17,12 @@ export const ICONS = {
   dot: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
   print: 'M7 9V4h10v5M7 17H4v-7h16v7h-3M7 14h10v6H7z',
   grid: 'M4 4h16v16H4zM4 12h16M12 4v16',
+  trash: 'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6',
+  download: 'M12 4v11M7 10.5l5 5 5-5M5 20h14',
+  upload: 'M12 16V5M7 9.5l5-5 5 5M5 20h14',
+  copy: 'M9 9h11v11H9zM5 15H4V4h11v1',
+  edit: 'M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4',
+  search: 'M10.5 17a6.5 6.5 0 1 0 0-13 6.5 6.5 0 0 0 0 13zM15.5 15.5 20 20',
 } as const;
 
 export type IconName = keyof typeof ICONS;
