@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { COLLECTIONS } from '$lib/ports';
+import { ALL_COLLECTIONS, COLLECTIONS, type Storage } from '$lib/ports';
+import { createDriverStorage, toStoreSpecs } from '$lib/adapters/core';
+import { createMemoryDriver } from '$lib/adapters/memory';
 import type { Id } from '$lib/packs/schema';
-import { bundle, fx, ids, memStorage } from './__fixtures__';
+import { bundle, clock, fx, ids, memStorage } from './__fixtures__';
 import { createPackLibrary } from './pack-library';
 import { createRosterService, type NewRosterInput } from './roster-service';
 
-async function setup(active: Id | null = 'demo:house') {
-  const storage = memStorage();
+async function setup(active: Id | null = 'demo:house', storage: Storage = memStorage()) {
   const library = createPackLibrary(storage, bundle(fx().other, fx().demo));
   await library.init();
   return { storage, svc: createRosterService({ storage, content: () => library.snapshot, activeRulesetId: () => active ?? undefined, newId: ids('roster') }) };
@@ -14,8 +15,13 @@ async function setup(active: Id | null = 'demo:house') {
 const valid = (): NewRosterInput => ({
   name: 'Lantern Team',
   mode: 'matched',
-  groups: [{ forceCardId: 'demo:lantern-detachment', unitIds: ['demo:lantern-wardens', 'demo:choir-hulk', 'other-demo:scout-bike'] }],
-  handlerId: 'demo:warden-captain',
+  groups: [
+    {
+      forceCardId: 'demo:lantern-detachment',
+      handlerId: 'demo:warden-captain',
+      unitIds: ['demo:lantern-wardens', 'demo:choir-hulk', 'other-demo:scout-bike'],
+    },
+  ],
 });
 const must = <T, E>(r: { ok: true; value: T } | { ok: false; error: E }): T => {
   if (!r.ok) throw new Error(JSON.stringify(r.error));
@@ -56,7 +62,7 @@ describe('RosterService', () => {
     const { roster } = must(await svc.create({ ...valid(), dusterId: 'demo:ghost', notes: 'Bring lamps.' }));
     const pm = svc.printModel(roster);
     expect(pm).toMatchObject({ name: 'Lantern Team', ruleset: 'House Rules', mode: 'Matched', notes: 'Bring lamps.', missing: ['demo:ghost'] });
-    expect(pm.handler?.name).toBe('Warden Captain');
+    expect(pm.groups[0]!.handler?.name).toBe('Warden Captain');
     expect(pm.duster).toBeUndefined();
     expect(pm.groups[0]!.force?.name).toBe('Lantern Detachment');
     expect(pm.groups[0]!.units.map((u) => u.name)).toEqual(['Lantern Wardens', 'Choir Hulk', 'Scout Bike']);
@@ -65,6 +71,7 @@ describe('RosterService', () => {
     const orphan = svc.printModel({ ...roster, rulesetId: 'x:y', groups: [{ forceCardId: 'x:f', unitIds: [] }, { unitIds: [] }] });
     expect(orphan).toMatchObject({ ruleset: 'x:y', mode: 'matched', missing: ['demo:ghost', 'x:f'] });
     expect(orphan.groups[1]).toEqual({ units: [] });
+    expect(orphan.groups[0]!.handler).toBeUndefined();
   });
 
   it('export/import with a fresh id; bare roster accepted; junk rejected; remove', async () => {
@@ -80,6 +87,20 @@ describe('RosterService', () => {
     await svc.remove(roster.id);
     expect(await svc.get(roster.id)).toBeUndefined();
     expect((await svc.list()).map((r) => r.id)).toEqual(['roster-2', 'roster-3']);
+  });
+
+  it('v1 records (roster-level handler) are migrated into groups[0] on read', async () => {
+    const driver = createMemoryDriver(toStoreSpecs(ALL_COLLECTIONS));
+    const T = '2026-10-01T00:00:00.000Z';
+    const { groups, ...rest } = valid();
+    const { handlerId, ...g0 } = groups![0]!;
+    const legacy = { ...rest, id: 'old', rulesetId: 'demo:house', handlerId, groups: [g0] };
+    await driver.upsert('rosters', 'old', () => ({ meta: { id: 'old', schemaVersion: 1, createdAt: T, updatedAt: T }, data: legacy }));
+    const { svc } = await setup('demo:house', createDriverStorage(driver, ALL_COLLECTIONS, clock()));
+    const r = await svc.get('old');
+    expect(r?.groups[0]?.handlerId).toBe('demo:warden-captain');
+    expect(r && 'handlerId' in r).toBe(false);
+    expect(svc.validate(r)).toEqual([]);
   });
 
   it('list skips corrupt records', async () => {

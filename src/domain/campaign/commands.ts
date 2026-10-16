@@ -36,6 +36,8 @@ export const StartCampaign = z.strictObject({
   /** packId → version, as reported by the loader; recorded for replay/migration checks. */
   packs: z.record(Slug, Semver).default({}),
   excludedTags: Tags,
+  /** v2: campaign.factions key; required when the campaign defines factions. */
+  faction: Key.optional(),
 });
 
 export const AarOperator = z.strictObject({
@@ -132,7 +134,7 @@ export type EventPayload<T extends CampaignEventType> = Extract<CampaignEvent, {
 export const CAMPAIGN_EVENT_TYPES = Object.keys(EVENT_PAYLOADS) as CampaignEventType[];
 
 /** Validate a persisted event's payload against its schema. */
-export function validateEvent(e: DomainEvent): string | undefined {
+export function validateEvent(e: Pick<DomainEvent, 'seq' | 'type' | 'payload'>): string | undefined {
   const schema = (EVENT_PAYLOADS as Record<string, z.ZodType>)[e.type];
   if (!schema) return `Unknown event type "${e.type}"`;
   const r = schema.safeParse(e.payload);

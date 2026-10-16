@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { Count } from './rules';
-import { int, Key, LIMITS, list, LocalId, LongText, Name, Ref, Scalar, ShortText, Tags, TextBlock, uniqueList } from './common';
+import { int, Key, LIMITS, list, LocalId, LongText, Name, Ref, Scalar, ShortText, Tags, TextBlock, uniqueArray, uniqueList } from './common';
 import { Condition, Effects, narrativeBody, NarrativeBlock, NarrativeRef, TeamDef } from './dsl';
 import { InlineScenario } from './scenario';
 
@@ -18,6 +18,8 @@ export const TRIGGER_EVENTS = [
   'onStageEnd',
   'onTrackMilestone',
   'onOperatorKia',
+  /** v2: `subject` = promoted operator; filter.rank narrows. */
+  'onPromotion',
 ] as const;
 export const TriggerEvent = z.enum(TRIGGER_EVENTS);
 
@@ -218,20 +220,41 @@ export const Timeline = z
   .meta({ id: 'Timeline' });
 
 // ── Triggers ─────────────────────────────────────────────────────────────
+export const TriggerFilter = z
+  .strictObject({
+    stage: Key.optional(),
+    mission: Key.optional(),
+    track: Key.optional(),
+    milestone: Key.optional(),
+    /** v2: onPromotion only — the rank promoted to. */
+    rank: Key.optional(),
+  })
+  .meta({ id: 'TriggerFilter' });
+
 export const Trigger = z
   .strictObject({
     key: Key,
     on: TriggerEvent,
     /** Narrow the event (stage/mission/track/milestone keys). */
-    filter: z
-      .strictObject({ stage: Key.optional(), mission: Key.optional(), track: Key.optional(), milestone: Key.optional() })
-      .optional(),
+    filter: TriggerFilter.optional(),
     when: when(),
     once: z.boolean().default(false),
     effects: Effects,
     narrative: NarrativeRef.optional(),
   })
   .meta({ id: 'Trigger' });
+
+/** v2: AAR fields + outcomes for custom missions. No outcomes = success (player rewards) / failure. */
+export const CustomMissionTemplate = z
+  .strictObject({
+    aar: z.strictObject({ fields: uniqueList(AarField, 'key', 24) }).prefault({}),
+    outcomes: uniqueArray(MissionOutcome, 'key', 8).check(z.minLength(1)).optional(),
+  })
+  .meta({ id: 'CustomMissionTemplate' });
+
+export const CampaignFaction = z
+  .strictObject({ key: Key, name: Name, text: ShortText.optional(), tags: Tags })
+  .meta({ id: 'CampaignFaction' });
 
 export const Persona = z
   .strictObject({ key: Key, name: Name, callsign: Name.optional(), role: ShortText.optional(), text: ShortText.optional() })
@@ -254,6 +277,10 @@ export const Campaign = z
     narratives: uniqueList(NarrativeBlock, 'key', 500),
     triggers: uniqueList(Trigger, 'key', 200),
     assets: uniqueList(z.strictObject({ key: Key, name: Name, text: ShortText.optional() }), 'key', 64),
+    /** v2: template for player-added custom missions. */
+    customMission: CustomMissionTemplate.optional(),
+    /** v2: player picks one at start (campaign-local keys, not faction Refs). */
+    factions: uniqueArray(CampaignFaction, 'key', 16).optional(),
     tags: Tags,
   })
   .meta({ id: 'Campaign' });
@@ -277,5 +304,8 @@ export type MissionSlot = z.infer<typeof MissionSlot>;
 export type Stage = z.infer<typeof Stage>;
 export type Timeline = z.infer<typeof Timeline>;
 export type Trigger = z.infer<typeof Trigger>;
+export type TriggerFilter = z.infer<typeof TriggerFilter>;
+export type CustomMissionTemplate = z.infer<typeof CustomMissionTemplate>;
+export type CampaignFaction = z.infer<typeof CampaignFaction>;
 export type Persona = z.infer<typeof Persona>;
 export type Campaign = z.infer<typeof Campaign>;

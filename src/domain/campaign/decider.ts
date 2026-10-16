@@ -1,4 +1,4 @@
-import { Mission, type Campaign, type Id } from '$lib/packs/schema';
+import { Mission, type Campaign, type Effect, type Id, type MissionOutcome } from '$lib/packs/schema';
 import type { ContentLookup } from '../content';
 import type { Decision, EventDraft } from '../events';
 import { CampaignCommand, formatIssues, type CampaignCommandInput, type CampaignEvent, type CommandOf } from './commands';
@@ -41,6 +41,9 @@ function start(content: ContentLookup, s: CampaignState, c: CommandOf<'startCamp
   if (roster.pick.min !== undefined && keys.length < roster.pick.min) return reject(`Pick at least ${roster.pick.min} team(s)`);
   if (roster.pick.max !== undefined && keys.length > roster.pick.max) return reject(`Pick at most ${roster.pick.max} team(s)`);
   if (roster.teamsMax !== undefined && keys.length > roster.teamsMax) return reject(`At most ${roster.teamsMax} team(s)`);
+  const factions = campaign.factions ?? [];
+  if (factions.length && c.faction === undefined) return reject('Pick a faction');
+  if (c.faction !== undefined && !factions.some((f) => f.key === c.faction)) return reject(`Unknown faction "${c.faction}"`);
   for (const pick of c.teams) {
     const def = roster.startingTeams.find((t) => t.key === pick.key);
     if (!def) return reject(`Unknown starting team "${pick.key}"`);
@@ -54,6 +57,19 @@ function start(content: ContentLookup, s: CampaignState, c: CommandOf<'startCamp
     }
   }
   return accept({ type: 'CampaignStarted', payload: strip(c) });
+}
+
+/** Template outcomes (player rewards appended to `success`, else the first), or the v1 success/failure pair. */
+function customOutcomes(campaign: Campaign, rewards: Effect[]): MissionOutcome[] {
+  const tpl = campaign.customMission?.outcomes;
+  if (!tpl) {
+    return [
+      { key: 'success', name: 'Success', effects: rewards },
+      { key: 'failure', name: 'Failure', effects: [] },
+    ];
+  }
+  const target = tpl.find((o) => o.key === 'success') ?? tpl[0]!;
+  return tpl.map((o) => (o === target ? { ...o, effects: [...o.effects, ...rewards] } : o));
 }
 
 function decide(content: ContentLookup, campaign: Campaign, s: CampaignState, c: Exclude<CampaignCommand, { type: 'startCampaign' }>): Result {
@@ -110,10 +126,8 @@ function decide(content: ContentLookup, campaign: Campaign, s: CampaignState, c:
         ...(m.scenario === undefined ? {} : { scenario: m.scenario }),
         ...(m.briefing === undefined ? {} : { briefing: m.briefing }),
         objectives: m.objectives,
-        outcomes: [
-          { key: 'success', name: 'Success', effects: m.rewards },
-          { key: 'failure', name: 'Failure' },
-        ],
+        aar: campaign.customMission?.aar ?? { fields: [] },
+        outcomes: customOutcomes(campaign, m.rewards),
         tags: m.tags,
       });
       if (!mission.success) return reject(`Invalid custom mission: ${formatIssues(mission.error)}`);

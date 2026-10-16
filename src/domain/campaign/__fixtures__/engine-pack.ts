@@ -5,7 +5,7 @@ import type { PackInput } from '$lib/packs/schema';
 
 export const enginePack = (): PackInput => ({
   format: 'blkout-pack',
-  formatVersion: 1,
+  formatVersion: 2,
   id: 'ops',
   version: '1.2.0',
   title: 'Engine test pack (invented)',
@@ -22,6 +22,8 @@ export const enginePack = (): PackInput => ({
           { key: 'late', weight: 50, label: 'Late intel', effects: [{ op: 'adjustTrack', track: 'intel', amount: 1 }], when: { op: 'stageIs', stage: 'three' } },
         ],
       },
+      { id: 'v-default', name: 'Default Intel', entries: [{ key: 'a', weight: 1, label: 'Default', effects: [{ op: 'setFlag', flag: 'table', value: 'default' }] }] },
+      { id: 'v-shade', name: 'Shade Intel', entries: [{ key: 'a', weight: 1, label: 'Shade', effects: [{ op: 'setFlag', flag: 'table', value: 'shade' }] }] },
       { id: 'grim-only', name: 'Grim Only', entries: [{ key: 'a', weight: 1, label: 'Grim', narrative: { text: 'Grim.' }, tags: ['gore'] }] },
       {
         id: 'names',
@@ -208,6 +210,85 @@ export const enginePack = (): PackInput => ({
             initial: 'a',
           },
         ],
+      },
+      {
+        // v2 features: factions, target filters, forEachTeam, teamMissions, onPromotion, destroyed, customMission.
+        id: 'v2-test',
+        name: 'V2 Test',
+        factions: [
+          { key: 'vanguard', name: 'Vanguard' },
+          { key: 'shade', name: 'Shade Cell', tags: ['covert'] },
+        ],
+        roster: {
+          startingTeams: [
+            { key: 'alpha', name: 'Alpha', operators: [{ key: 'a1', name: 'Ash', tags: ['medic'] }, { key: 'a2', name: 'Bell' }] },
+            { key: 'bravo', name: 'Bravo', operators: [{ key: 'b1', name: 'Crow', tags: ['heavy', 'vehicle'] }, { key: 'b2', name: 'Dune', tags: ['medic'] }] },
+          ],
+          pick: { min: 1, max: 2 },
+          ranks: [{ key: 'pvt', name: 'Private' }, { key: 'cpl', name: 'Corporal', xp: 3 }, { key: 'sgt', name: 'Sergeant' }],
+        },
+        timeline: {
+          stages: [
+            { key: 'w1', name: 'Window 1', slots: [{ key: 'ops', missions: ['op'], optional: true }] },
+            { key: 'w2', name: 'Window 2', slots: [{ key: 'ops', missions: ['op'], optional: true }] },
+          ],
+        },
+        missions: [
+          {
+            key: 'op',
+            name: 'Operation',
+            repeatable: true,
+            outcomes: [
+              {
+                key: 'success',
+                name: 'Success',
+                effects: [
+                  { op: 'addXp', target: { from: 'participants', where: { op: 'hasTag', target: 'subject', tags: ['medic'] } }, amount: 3 },
+                  { op: 'forEachTeam', where: { op: 'teamMissions', value: 3 }, effects: [{ op: 'setLadder', ladder: 'readiness', state: 'red' }] },
+                  { op: 'rollTable', table: 'v-default', byFaction: [{ faction: 'shade', table: 'v-shade' }] },
+                ],
+              },
+              { key: 'scrap', name: 'Vehicle lost', effects: [{ op: 'removeOperator', target: { from: 'roster', where: { op: 'hasTag', target: 'subject', tags: ['vehicle'] } }, reason: 'destroyed' }] },
+              {
+                key: 'rally',
+                name: 'Rally',
+                effects: [
+                  {
+                    op: 'forEachTeam',
+                    effects: [
+                      { op: 'stepLadder', ladder: 'readiness', target: 'team', steps: 1 },
+                      { op: 'adjustStat', target: { from: 'team', where: { op: 'not', cond: { op: 'hasTag', target: 'subject', tags: ['medic'] } } }, stat: 'kills', amount: 1 },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+        ladders: [
+          { key: 'readiness', name: 'Readiness', scope: 'team', states: [{ key: 'green', name: 'Green' }, { key: 'amber', name: 'Amber' }, { key: 'red', name: 'Red' }], initial: 'green' },
+        ],
+        pools: [{ key: 'supply', name: 'Supply', initial: 5, max: 20 }],
+        narratives: [{ key: 'faction-note', text: '{{campaign.factionName}} ({{campaign.faction}}) online.' }],
+        triggers: [
+          { key: 'hello', on: 'onCampaignStart', effects: [{ op: 'showNarrative', narrative: 'faction-note' }] },
+          {
+            key: 'promo',
+            on: 'onPromotion',
+            filter: { rank: 'cpl' },
+            effects: [{ op: 'adjustPool', pool: 'supply', amount: 1 }],
+            narrative: { text: '{{operator.name}} made {{operator.rank}}.' },
+          },
+          { key: 'kia', on: 'onOperatorKia', effects: [{ op: 'setFlag', flag: 'kia-fired' }] },
+        ],
+        customMission: {
+          aar: { fields: [{ key: 'loot', label: 'Loot', kind: 'number', scope: 'mission', min: 0, perUnit: [{ op: 'adjustPool', pool: 'supply', amount: 1 }] }] },
+          outcomes: [
+            { key: 'win', name: 'Win' },
+            { key: 'success', name: 'Clean', effects: [{ op: 'setFlag', flag: 'clean' }] },
+            { key: 'loss', name: 'Loss' },
+          ],
+        },
       },
     ],
   },

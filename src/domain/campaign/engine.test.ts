@@ -81,7 +81,7 @@ describe('golden: Iron Test', () => {
     expect(persisted.every((x) => validateEvent(x) === undefined)).toBe(true);
   });
 
-  it('undo truncates and rebuilds; preview does not commit', () => {
+  it('undo removes the last command, truncate keeps seq <= n; preview does not commit', () => {
     const e = ironEngine();
     must(e, { type: 'beginMission', mission: 'recon' });
     const before = structuredClone(e.state);
@@ -89,8 +89,16 @@ describe('golden: Iron Test', () => {
     expect(p.ok && p.state.missions.recon!.outcome).toBe('failure');
     expect(e.state).toEqual(before);
     must(e, { type: 'resolveAar', aar: { mission: 'recon', outcome: 'success' } });
-    expect(e.undo(2)).toEqual(before);
+    expect(e.undo()).toEqual(before);
     expect(e.events).toHaveLength(2);
+    must(e, { type: 'cancelMission' });
+    const cancelled = structuredClone(e.state);
+    must(e, { type: 'resolveAar', aar: { mission: 'raid-a', outcome: 'success' } }); // auto-begin: 2 events, 1 command
+    expect(e.events.slice(-2).map((x) => [x.type, x.cmd])).toEqual([['MissionBegun', 4], ['AarResolved', 4]]);
+    expect(e.undo()).toEqual(cancelled);
+    expect(e.undo()).toEqual(before);
+    expect(e.truncate(1).activeMission).toBeNull();
+    expect(e.events).toHaveLength(1);
   });
 });
 
@@ -271,9 +279,9 @@ describe('persistence robustness', () => {
 
   it('reducer never throws when campaign content is missing', () => {
     const reduce = createCampaignReducer(lookupFromPacks(demo));
-    const s = reduce(initialCampaignState(), { seq: 1, type: 'CampaignStarted', payload: { campaign: IRON, seed: 1, teams: [{ key: 'alpha', recruits: [] }], packs: {}, excludedTags: [] } });
+    const s = reduce(initialCampaignState(), { seq: 1, cmd: 1, type: 'CampaignStarted', payload: { campaign: IRON, seed: 1, teams: [{ key: 'alpha', recruits: [] }], packs: {}, excludedTags: [] } });
     expect(s.feed[0]).toMatchObject({ kind: 'error', text: expect.stringMatching(/not loaded/) });
-    const t = reduce(initialCampaignState(), { seq: 1, type: 'ContentFilterSet', payload: { excludedTags: [] } });
+    const t = reduce(initialCampaignState(), { seq: 1, cmd: 1, type: 'ContentFilterSet', payload: { excludedTags: [] } });
     expect(t.feed[0]!.text).toMatch(/Campaign "\?" is not loaded/);
   });
 

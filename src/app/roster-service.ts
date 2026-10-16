@@ -25,9 +25,9 @@ export interface RosterPrintModel {
   readonly ruleset: string;
   readonly mode: string;
   readonly notes: string;
-  readonly handler?: CardViewModel;
   readonly duster?: CardViewModel;
-  readonly groups: readonly { force?: ForceCardViewModel; units: CardViewModel[] }[];
+  /** One handler per group (RJ ruling). */
+  readonly groups: readonly { force?: ForceCardViewModel; handler?: CardViewModel; units: CardViewModel[] }[];
   /** Ids that are not loaded (shown as placeholders). */
   readonly missing: readonly string[];
   readonly issues: readonly ValidationIssue[];
@@ -119,18 +119,17 @@ export function createRosterService(deps: RosterServiceDeps): RosterService {
         return f && toForceCardViewModel(f, ctx);
       };
       const ruleset = reg.get('ruleset', roster.rulesetId);
-      const handler = roster.handlerId && unit(roster.handlerId);
       const duster = roster.dusterId && unit(roster.dusterId);
       const groups = roster.groups.map((g) => {
         const f = g.forceCardId && force(g.forceCardId);
-        return { ...(f ? { force: f } : {}), units: g.unitIds.flatMap((id) => unit(id) ?? []) };
+        const h = g.handlerId && unit(g.handlerId);
+        return { ...(f ? { force: f } : {}), ...(h ? { handler: h } : {}), units: g.unitIds.flatMap((id) => unit(id) ?? []) };
       });
       return {
         name: roster.name,
         ruleset: ruleset?.name ?? roster.rulesetId,
         mode: ruleset?.rosterModes.find((m) => m.mode === roster.mode)?.name ?? roster.mode,
         notes: roster.notes,
-        ...(handler ? { handler } : {}),
         ...(duster ? { duster } : {}),
         groups,
         missing,

@@ -3,6 +3,7 @@ import { CONTENT_KEYS } from './content-kinds';
 import { resolveDependencies } from './deps';
 import { applyErrata, indexContent, rebuildPacks } from './errata';
 import { dedupe, err, fromZod, loadError, ok, type LoadError, type Result } from './errors';
+import { checkFormatVersion } from './format-version';
 import { namespacePack } from './namespace';
 import { ContentRegistry } from './registry';
 import { validateCampaign, validateRefs } from './semantic';
@@ -23,7 +24,9 @@ export function parsePack(input: unknown): Result<Pack, LoadError[]> {
     }
   }
   const r = Pack.safeParse(data);
-  return r.success ? ok(r.data) : err(fromZod(r.error, packIdOf(data)));
+  if (!r.success) return err(fromZod(r.error, packIdOf(data)));
+  const version = checkFormatVersion(r.data);
+  return version.length ? err(version) : ok(r.data);
 }
 
 export interface LoadedPacks {

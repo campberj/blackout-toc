@@ -118,6 +118,10 @@ export interface CampaignState {
   stageIndex: number;
   /** Sticky once the stage's endWhen passed or all required slots resolved; cleared on advance. */
   stageComplete: boolean;
+  /** v2: player's campaign faction key (campaign.factions). */
+  faction: string | null;
+  /** v2: stage → team → missions that team took part in during that stage (teamMissions). */
+  teamStageMissions: Record<string, Record<string, number>>;
   activeMission: string | null;
   /** Status the active mission had before beginMission (restored on cancel). */
   activeMissionPrior: MissionStatus | null;
@@ -151,6 +155,8 @@ export const initialCampaignState = (): CampaignState => ({
   stage: null,
   stageIndex: -1,
   stageComplete: false,
+  faction: null,
+  teamStageMissions: {},
   activeMission: null,
   activeMissionPrior: null,
   missions: {},

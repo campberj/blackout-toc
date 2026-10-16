@@ -6,6 +6,8 @@ import { Id, Name, RosterModeKey, TextBlock } from '$lib/packs/schema';
 export const RosterGroup = z.strictObject({
   /** Optional while drafting; `forceCardsPerGroup` decides whether it is required. */
   forceCardId: Id.optional(),
+  /** One handler per group; `handlersPerGroup` decides required/optional/forbidden. */
+  handlerId: Id.optional(),
   unitIds: z.array(Id).max(16).default([]),
 });
 
@@ -15,8 +17,6 @@ export const Roster = z.strictObject({
   rulesetId: Id,
   mode: RosterModeKey,
   groups: z.array(RosterGroup).max(8).default([]),
-  /** Roster-level handler; counts toward group 0's handlers. */
-  handlerId: Id.optional(),
   /** Roster-level duster; counts toward group 0 (and its units when the mode says it replaces one). */
   dusterId: Id.optional(),
   notes: TextBlock.default(''),

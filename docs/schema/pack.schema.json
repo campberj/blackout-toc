@@ -15,7 +15,10 @@
         },
         "formatVersion": {
           "type": "number",
-          "const": 1
+          "enum": [
+            1,
+            2
+          ]
         },
         "id": {
           "type": "string",
@@ -1768,7 +1771,7 @@
               "const": "addXp"
             },
             "target": {
-              "$ref": "#/$defs/Target"
+              "$ref": "#/$defs/TargetSpec"
             },
             "amount": {
               "type": "integer",
@@ -1797,7 +1800,7 @@
               "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
             },
             "target": {
-              "$ref": "#/$defs/Target"
+              "$ref": "#/$defs/TargetSpec"
             },
             "steps": {
               "type": "integer",
@@ -1826,7 +1829,7 @@
               "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
             },
             "target": {
-              "$ref": "#/$defs/Target"
+              "$ref": "#/$defs/TargetSpec"
             },
             "state": {
               "type": "string",
@@ -1961,7 +1964,7 @@
               "const": "removeOperator"
             },
             "target": {
-              "$ref": "#/$defs/Target"
+              "$ref": "#/$defs/TargetSpec"
             },
             "reason": {
               "type": "string",
@@ -1970,7 +1973,8 @@
                 "mia",
                 "captured",
                 "retired",
-                "transferred"
+                "transferred",
+                "destroyed"
               ]
             }
           },
@@ -2059,6 +2063,13 @@
               "type": "integer",
               "minimum": 1,
               "maximum": 5
+            },
+            "byFaction": {
+              "maxItems": 16,
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/FactionTable"
+              }
             }
           },
           "required": [
@@ -2124,7 +2135,7 @@
               "const": "promote"
             },
             "target": {
-              "$ref": "#/$defs/Target"
+              "$ref": "#/$defs/TargetSpec"
             },
             "rank": {
               "type": "string",
@@ -2147,7 +2158,7 @@
               "const": "adjustStat"
             },
             "target": {
-              "$ref": "#/$defs/Target"
+              "$ref": "#/$defs/TargetSpec"
             },
             "stat": {
               "type": "string",
@@ -2200,8 +2211,43 @@
             "then"
           ],
           "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "type": "string",
+              "const": "forEachTeam"
+            },
+            "where": {
+              "$ref": "#/$defs/Condition"
+            },
+            "effects": {
+              "maxItems": 64,
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/Effect"
+              }
+            }
+          },
+          "required": [
+            "op",
+            "effects"
+          ],
+          "additionalProperties": false
         }
       ]
+    },
+    "TargetSpec": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Target"
+        },
+        {
+          "$ref": "#/$defs/TargetFilter"
+        }
+      ],
+      "description": "Target, or {from: Target, where: Condition}"
     },
     "Target": {
       "anyOf": [
@@ -2210,7 +2256,8 @@
           "enum": [
             "participants",
             "roster",
-            "subject"
+            "subject",
+            "team"
           ]
         },
         {
@@ -2222,175 +2269,23 @@
           "pattern": "^team:[a-z0-9]+(?:-[a-z0-9]+)*$"
         }
       ],
-      "description": "'participants' | 'roster' | 'subject' | 'operator:<key>' | 'team:<key>'"
+      "description": "'participants' | 'roster' | 'subject' | 'team' | 'operator:<key>' | 'team:<key>'"
     },
-    "OperatorSeed": {
+    "TargetFilter": {
       "type": "object",
       "properties": {
-        "key": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 64,
-          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        "from": {
+          "$ref": "#/$defs/Target"
         },
-        "name": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 80
-        },
-        "callsign": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 80
-        },
-        "unit": {
-          "$ref": "#/$defs/Ref"
-        },
-        "stats": {
-          "type": "object",
-          "propertyNames": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 64,
-            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
-          },
-          "additionalProperties": {
-            "type": "integer",
-            "minimum": -9999,
-            "maximum": 9999
-          }
-        },
-        "fields": {
-          "type": "object",
-          "propertyNames": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 64,
-            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
-          },
-          "additionalProperties": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "number"
-              },
-              {
-                "type": "string",
-                "maxLength": 280
-              }
-            ]
-          }
-        },
-        "tags": {
-          "default": [],
-          "maxItems": 32,
-          "type": "array",
-          "items": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 64,
-            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
-          }
-        }
-      },
-      "additionalProperties": false
-    },
-    "TeamDef": {
-      "type": "object",
-      "properties": {
-        "key": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 64,
-          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
-        },
-        "name": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 80
-        },
-        "callsign": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 80
-        },
-        "text": {
-          "type": "string",
-          "maxLength": 280
-        },
-        "operators": {
-          "default": [],
-          "maxItems": 24,
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/OperatorSeed"
-          }
-        },
-        "tags": {
-          "default": [],
-          "maxItems": 32,
-          "type": "array",
-          "items": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 64,
-            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
-          }
+        "where": {
+          "$ref": "#/$defs/Condition"
         }
       },
       "required": [
-        "key",
-        "name"
+        "from",
+        "where"
       ],
       "additionalProperties": false
-    },
-    "NarrativeRef": {
-      "anyOf": [
-        {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 64,
-          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
-        },
-        {
-          "type": "object",
-          "properties": {
-            "title": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 80
-            },
-            "text": {
-              "type": "string",
-              "maxLength": 20000
-            },
-            "speaker": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 64,
-              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
-            },
-            "tags": {
-              "default": [],
-              "maxItems": 32,
-              "type": "array",
-              "items": {
-                "type": "string",
-                "minLength": 1,
-                "maxLength": 64,
-                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
-              }
-            }
-          },
-          "required": [
-            "text"
-          ],
-          "additionalProperties": false
-        }
-      ],
-      "description": "NarrativeBlock key, or inline {title?, text, speaker?, tags}"
     },
     "Condition": {
       "oneOf": [
@@ -2525,7 +2420,7 @@
               "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
             },
             "target": {
-              "$ref": "#/$defs/Target"
+              "$ref": "#/$defs/TargetSpec"
             },
             "states": {
               "minItems": 1,
@@ -2563,7 +2458,7 @@
               "const": "operatorStat"
             },
             "target": {
-              "$ref": "#/$defs/Target"
+              "$ref": "#/$defs/TargetSpec"
             },
             "stat": {
               "type": "string",
@@ -2653,6 +2548,97 @@
           "properties": {
             "op": {
               "type": "string",
+              "const": "hasTag"
+            },
+            "target": {
+              "$ref": "#/$defs/TargetSpec"
+            },
+            "tags": {
+              "minItems": 1,
+              "maxItems": 16,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+              }
+            },
+            "match": {
+              "default": "any",
+              "type": "string",
+              "enum": [
+                "any",
+                "all",
+                "none"
+              ]
+            }
+          },
+          "required": [
+            "op",
+            "target",
+            "tags"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "type": "string",
+              "const": "teamMissions"
+            },
+            "cmp": {
+              "default": "gte",
+              "type": "string",
+              "enum": [
+                "gte",
+                "lte",
+                "eq"
+              ]
+            },
+            "value": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 99
+            }
+          },
+          "required": [
+            "op",
+            "value"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "type": "string",
+              "const": "factionIs"
+            },
+            "factions": {
+              "minItems": 1,
+              "maxItems": 16,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+              }
+            }
+          },
+          "required": [
+            "op",
+            "factions"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "type": "string",
               "const": "all"
             },
             "of": {
@@ -2710,6 +2696,193 @@
           "additionalProperties": false
         }
       ]
+    },
+    "OperatorSeed": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "callsign": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "unit": {
+          "$ref": "#/$defs/Ref"
+        },
+        "stats": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          },
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": -9999,
+            "maximum": 9999
+          }
+        },
+        "fields": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "maxLength": 280
+              }
+            ]
+          }
+        },
+        "tags": {
+          "default": [],
+          "maxItems": 32,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "TeamDef": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "callsign": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 280
+        },
+        "operators": {
+          "default": [],
+          "maxItems": 24,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/OperatorSeed"
+          }
+        },
+        "tags": {
+          "default": [],
+          "maxItems": 32,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          }
+        }
+      },
+      "required": [
+        "key",
+        "name"
+      ],
+      "additionalProperties": false
+    },
+    "FactionTable": {
+      "type": "object",
+      "properties": {
+        "faction": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "table": {
+          "$ref": "#/$defs/Ref"
+        }
+      },
+      "required": [
+        "faction",
+        "table"
+      ],
+      "additionalProperties": false
+    },
+    "NarrativeRef": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
+            },
+            "text": {
+              "type": "string",
+              "maxLength": 20000
+            },
+            "speaker": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+            },
+            "tags": {
+              "default": [],
+              "maxItems": 32,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64,
+                "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+              }
+            }
+          },
+          "required": [
+            "text"
+          ],
+          "additionalProperties": false
+        }
+      ],
+      "description": "NarrativeBlock key, or inline {title?, text, speaker?, tags}"
     },
     "Campaign": {
       "type": "object",
@@ -2831,6 +3004,16 @@
               "name"
             ],
             "additionalProperties": false
+          }
+        },
+        "customMission": {
+          "$ref": "#/$defs/CustomMissionTemplate"
+        },
+        "factions": {
+          "maxItems": 16,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CampaignFaction"
           }
         },
         "tags": {
@@ -3874,7 +4057,8 @@
                   "onMissionResolved",
                   "onStageEnd",
                   "onTrackMilestone",
-                  "onOperatorKia"
+                  "onOperatorKia",
+                  "onPromotion"
                 ]
               },
               "mode": {
@@ -4054,38 +4238,12 @@
             "onMissionResolved",
             "onStageEnd",
             "onTrackMilestone",
-            "onOperatorKia"
+            "onOperatorKia",
+            "onPromotion"
           ]
         },
         "filter": {
-          "type": "object",
-          "properties": {
-            "stage": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 64,
-              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
-            },
-            "mission": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 64,
-              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
-            },
-            "track": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 64,
-              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
-            },
-            "milestone": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 64,
-              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
-            }
-          },
-          "additionalProperties": false
+          "$ref": "#/$defs/TriggerFilter"
         },
         "when": {
           "$ref": "#/$defs/Condition"
@@ -4109,6 +4267,107 @@
       "required": [
         "key",
         "on"
+      ],
+      "additionalProperties": false
+    },
+    "TriggerFilter": {
+      "type": "object",
+      "properties": {
+        "stage": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "mission": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "track": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "milestone": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "rank": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "CustomMissionTemplate": {
+      "type": "object",
+      "properties": {
+        "aar": {
+          "default": {},
+          "type": "object",
+          "properties": {
+            "fields": {
+              "default": [],
+              "maxItems": 24,
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/AarField"
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "outcomes": {
+          "minItems": 1,
+          "maxItems": 8,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/MissionOutcome"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "CampaignFaction": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 280
+        },
+        "tags": {
+          "default": [],
+          "maxItems": 32,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          }
+        }
+      },
+      "required": [
+        "key",
+        "name"
       ],
       "additionalProperties": false
     },
@@ -5094,6 +5353,16 @@
                       "name"
                     ],
                     "additionalProperties": false
+                  }
+                },
+                "customMission": {
+                  "$ref": "#/$defs/CustomMissionTemplate"
+                },
+                "factions": {
+                  "maxItems": 16,
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/CampaignFaction"
                   }
                 },
                 "tags": {

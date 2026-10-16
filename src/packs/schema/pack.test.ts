@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import demo from './__fixtures__/demo-pack.json';
-import { Errata, Pack, PACK_FORMAT_VERSION } from './index';
+import { Errata, Pack, PACK_FORMAT_VERSION, PACK_FORMAT_VERSIONS } from './index';
 
 const clone = (): Record<string, any> => structuredClone(demo) as Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 
@@ -18,7 +18,9 @@ describe('Pack envelope', () => {
     for (const k of ['keywords', 'factions', 'forces', 'units', 'rulesets', 'calibrations', 'scenarios', 'tables', 'campaigns', 'errata'] as const) {
       expect(c[k].length, k).toBeGreaterThan(0);
     }
-    expect(r.data.formatVersion).toBe(PACK_FORMAT_VERSION);
+    expect(PACK_FORMAT_VERSIONS).toContain(r.data.formatVersion);
+    expect(PACK_FORMAT_VERSION).toBe(2);
+    expect(Pack.safeParse({ ...demo, formatVersion: 2 }).success).toBe(true);
   });
 
   it('applies defaults', () => {
@@ -40,7 +42,7 @@ describe('Pack envelope', () => {
   });
 
   it('rejects wrong format, formatVersion, semver, unknown keys', () => {
-    for (const [k, v] of [['format', 'other'], ['formatVersion', 2], ['version', '1.0'], ['extra', 1]] as const) {
+    for (const [k, v] of [['format', 'other'], ['formatVersion', 3], ['version', '1.0'], ['extra', 1]] as const) {
       const p = clone();
       p[k] = v;
       expect(Pack.safeParse(p).success, k).toBe(false);

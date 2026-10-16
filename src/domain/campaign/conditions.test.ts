@@ -72,6 +72,26 @@ describe('condition ops', () => {
     expect(ev(ctx, { op: 'any', of: [{ op: 'stageIs', stage: 'two' }, { op: 'stageIs', stage: 'three' }] })).toBe(false);
   });
 
+  it('hasTag (any listed tag, quantified, filtered target), teamMissions (scope team, current stage), factionIs', () => {
+    ctx.s.operators.vale!.tags = ['medic'];
+    ctx.s.operators.juno!.tags = ['scout', 'medic'];
+    const t = (match: string, target: unknown = 'team:alpha', tags = ['medic']) => ({ op: 'hasTag', target, tags, match });
+    expect([ev(ctx, t('any')), ev(ctx, t('all')), ev(ctx, t('none', 'team:bravo')), ev(ctx, t('any', 'roster', ['pilot', 'scout']))]).toEqual([true, false, true, true]);
+    const filtered = { from: 'roster', where: { op: 'operatorStat', target: 'subject', stat: 'grit', cmp: 'gte', value: 3 } };
+    expect(ev(ctx, t('all', filtered))).toBe(false); // vale (medic, grit 3) + brook (grit 9, no tag)
+    expect(ev(ctx, t('all', 'team', ['scout']), scope({ subject: 'juno' }))).toBe(false);
+
+    ctx.s.teamStageMissions = { one: { alpha: 2 }, two: { alpha: 9 } };
+    expect(ev(ctx, { op: 'teamMissions', value: 2 }, scope({ team: 'alpha' }))).toBe(true);
+    expect(ev(ctx, { op: 'teamMissions', cmp: 'eq', value: 2 }, scope({ subject: 'vale' }))).toBe(true);
+    expect(ev(ctx, { op: 'teamMissions', cmp: 'eq', value: 0 }, scope({ team: 'bravo' }))).toBe(true);
+    expect(ev(ctx, { op: 'teamMissions', cmp: 'lte', value: 0 })).toBe(true); // no scope team = 0
+
+    expect(ev(ctx, { op: 'factionIs', factions: ['x'] })).toBe(false);
+    ctx.s.faction = 'x';
+    expect([ev(ctx, { op: 'factionIs', factions: ['y', 'x'] }), ev(ctx, { op: 'factionIs', factions: ['y'] })]).toEqual([true, false]);
+  });
+
   it('helpers: quantify on empty sets, passes on undefined', () => {
     expect([quantify([], 'any', () => true), quantify([], 'all', () => true), quantify([], 'none', () => true)]).toEqual([false, false, true]);
     expect(passes(ctx, scope(), undefined)).toBe(true);

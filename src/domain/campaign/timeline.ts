@@ -5,8 +5,11 @@ import { missionDef, type CampaignState } from './state';
 
 export const currentStage = (campaign: Campaign, s: CampaignState): Stage | undefined => campaign.timeline.stages[s.stageIndex];
 
-/** First slot (in timeline order) that lists the mission. */
-export function slotOf(campaign: Campaign, key: string): { stage: Stage; slot: MissionSlot } | undefined {
+/** Slot listing the mission: in `prefer` stage (the current one) if any, else the first in timeline order. */
+export function slotOf(campaign: Campaign, key: string, prefer?: string | null): { stage: Stage; slot: MissionSlot } | undefined {
+  const preferred = campaign.timeline.stages.find((st) => st.key === prefer);
+  const own = preferred?.slots.find((sl) => sl.missions.includes(key));
+  if (preferred && own) return { stage: preferred, slot: own };
   for (const stage of campaign.timeline.stages) {
     const slot = stage.slots.find((sl) => sl.missions.includes(key));
     if (slot) return { stage, slot };
@@ -16,7 +19,7 @@ export function slotOf(campaign: Campaign, key: string): { stage: Stage; slot: M
 
 /** Explicit placement (unlockMission.stage / custom) wins over slot placement; null = floating (any stage). */
 export const missionStage = (campaign: Campaign, s: CampaignState, key: string): string | null =>
-  s.missions[key]?.stage ?? slotOf(campaign, key)?.stage.key ?? null;
+  s.missions[key]?.stage ?? slotOf(campaign, key, s.stage)?.stage.key ?? null;
 
 export const slotResolved = (s: CampaignState, slot: MissionSlot) => slot.missions.some((m) => (s.missions[m]?.resolutions ?? 0) > 0);
 
@@ -50,7 +53,7 @@ export function availableMissions(campaign: Campaign, s: CampaignState): Mission
     const beginnable = ms.status === 'available' || (ms.status === 'resolved' && def.repeatable);
     if (!beginnable) continue;
     // A slot resolved by any of its candidates closes the others (player chose), unless explicitly re-placed.
-    const placed = slotOf(campaign, key);
+    const placed = slotOf(campaign, key, s.stage);
     const slotted = ms.stage === null && placed !== undefined;
     if (slotted && slotResolved(s, placed.slot) && !(def.repeatable && ms.resolutions > 0)) continue;
     out.push({

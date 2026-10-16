@@ -4,7 +4,7 @@ import { passes, evaluate } from './conditions';
 import { halt, log, MAX_DEPTH, MAX_STEPS, pushFeed, warn, type Ctx, type Scope } from './context';
 import { eligibleEntries, emitNarrative, isExcluded, NEUTRAL_TABLE_TEXT, showNarrative } from './narrative';
 import { adjustOperatorStat, createOperator, createTeam, isKnownStat, materializeSeed, nextRank, pushHistory, setRank, teamFull } from './roster';
-import { qualify } from './state';
+import { activeTeamOperators, qualify } from './state';
 import { resolveLadderSlots, resolveOperators, type LadderSlot } from './targets';
 
 const names = (ctx: Ctx, keys: readonly string[]) => keys.map((k) => ctx.s.operators[k]!.name).join(', ');
@@ -112,15 +112,15 @@ function applyEffect(ctx: Ctx, scope: Scope, e: Effect): void {
   const s = ctx.s;
   switch (e.op) {
     case 'addXp': {
-      const ops = resolveOperators(s, scope, e.target);
-      ops.forEach((k) => adjustOperatorStat(ctx, k, 'xp', e.amount));
+      const ops = resolveOperators(ctx, scope, e.target);
+      ops.forEach((k) => adjustOperatorStat(ctx, scope, k, 'xp', e.amount));
       if (ops.length) log(ctx, `${signed(e.amount)} XP: ${names(ctx, ops)}.`);
       return;
     }
     case 'adjustStat': {
       if (!isKnownStat(ctx, e.stat)) return warn(ctx, `Unknown stat "${e.stat}"`);
-      const ops = resolveOperators(s, scope, e.target);
-      ops.forEach((k) => adjustOperatorStat(ctx, k, e.stat, e.amount));
+      const ops = resolveOperators(ctx, scope, e.target);
+      ops.forEach((k) => adjustOperatorStat(ctx, scope, k, e.stat, e.amount));
       if (ops.length) log(ctx, `${signed(e.amount)} ${e.stat}: ${names(ctx, ops)}.`);
       return;
     }
@@ -129,7 +129,7 @@ function applyEffect(ctx: Ctx, scope: Scope, e: Effect): void {
       const ladder = findLadder(ctx, e.ladder);
       if (!ladder) return;
       if (e.op === 'setLadder' && !ladder.states.some((x) => x.key === e.state)) return warn(ctx, `Unknown state "${e.state}" on ladder "${e.ladder}"`);
-      for (const slot of resolveLadderSlots(s, scope, ladder, e.target)) {
+      for (const slot of resolveLadderSlots(ctx, scope, ladder, e.target)) {
         if (ctx.halted) return;
         // Holder may have been removed by an earlier slot's onEnter chain.
         if (ladder.scope === 'operator' && s.operators[slot.holder!]!.status !== 'active') continue;
@@ -164,7 +164,7 @@ function applyEffect(ctx: Ctx, scope: Scope, e: Effect): void {
       return;
     }
     case 'removeOperator': {
-      for (const k of resolveOperators(s, scope, e.target)) {
+      for (const k of resolveOperators(ctx, scope, e.target)) {
         if (ctx.halted) return;
         const op = s.operators[k]!;
         if (op.status !== 'active') continue;
@@ -201,8 +201,10 @@ function applyEffect(ctx: Ctx, scope: Scope, e: Effect): void {
       }
       return;
     }
-    case 'rollTable':
-      return rollTable(ctx, scope, e.table, e.times);
+    case 'rollTable': {
+      const override = ctx.s.faction === null ? undefined : e.byFaction?.find((f) => f.faction === ctx.s.faction);
+      return rollTable(ctx, scope, override?.table ?? e.table, e.times);
+    }
     case 'showNarrative':
       return showNarrative(ctx, scope, e.narrative);
     case 'grantAsset': {
@@ -216,14 +218,23 @@ function applyEffect(ctx: Ctx, scope: Scope, e: Effect): void {
     }
     case 'promote': {
       if (e.rank !== undefined && !ctx.campaign.roster.ranks.some((r) => r.key === e.rank)) return warn(ctx, `Unknown rank "${e.rank}"`);
-      for (const k of resolveOperators(s, scope, e.target)) {
+      for (const k of resolveOperators(ctx, scope, e.target)) {
         const rank = e.rank ?? nextRank(ctx, k);
-        if (rank) setRank(ctx, k, rank);
+        if (rank) setRank(ctx, scope, k, rank);
       }
       return;
     }
     case 'if':
       return applyEffects(ctx, scope, evaluate(ctx, scope, e.cond) ? e.then : (e.else ?? []));
+    case 'forEachTeam':
+      // Snapshot: teams added inside the loop are not visited; teams emptied mid-loop are skipped.
+      for (const team of [...s.teamOrder]) {
+        if (ctx.halted) return;
+        if (activeTeamOperators(s, team).length === 0) continue;
+        const inner: Scope = { ...scope, team };
+        if (passes(ctx, inner, e.where)) applyEffects(ctx, inner, e.effects);
+      }
+      return;
   }
 }
 

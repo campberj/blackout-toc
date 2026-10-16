@@ -34,7 +34,6 @@ export function validateRoster(r: Roster, lookup: ContentLookup): ValidationIssu
   };
 
   count(r.groups.length, mode.groups, 'groups', 'group(s)');
-  const handler = typed(r.handlerId, 'handlerId', 'handler');
   const duster = typed(r.dusterId, 'dusterId', 'duster');
 
   const everyone: Member[] = [];
@@ -57,14 +56,16 @@ export function validateRoster(r: Roster, lookup: ContentLookup): ValidationIssu
       seen.add(id);
       members.push({ unit, path });
     });
-    if (gi === 0) members.push(...[handler, duster].filter((m): m is Member => m !== undefined));
+    const handler = typed(g.handlerId, `${base}.handlerId`, 'handler');
+    if (handler) members.push(handler);
+    if (gi === 0 && duster) members.push(duster);
 
     const of = (t: UnitCard['type']) => members.filter((m) => m.unit.type === t).length;
     const groupDusters = of('duster');
     dusters += groupDusters - (gi === 0 && duster ? 1 : 0);
     const units = members.length - of('handler') - groupDusters + (mode.dusters.replacesUnit ? groupDusters : 0);
     count(units, mode.unitsPerGroup, `${base}.unitIds`, 'unit(s) per group');
-    count(of('handler'), mode.handlersPerGroup, gi === 0 && !r.handlerId ? 'handlerId' : `${base}.unitIds`, 'handler(s) per group');
+    out.push(...handlerCount(of('handler'), mode, `${base}.handlerId`));
     out.push(...limits(mode, 'group', members, base));
     everyone.push(...members);
   });
@@ -72,6 +73,19 @@ export function validateRoster(r: Roster, lookup: ContentLookup): ValidationIssu
     out.push(issue('error', 'dusterId', 'count', `${mode.name}: ${describeCount({ max: mode.dusters.max })} duster(s) allowed (has ${dusters})`));
   out.push(...limits(mode, 'roster', everyone, ''));
   return out;
+}
+
+/** One handler per group: `handlersPerGroup` {min:1,max:1} required, {max:1} optional, {max:0} forbidden. */
+function handlerCount(n: number, m: RosterMode, path: string): ValidationIssue[] {
+  const c = m.handlersPerGroup;
+  if (!outsideCount(n, c)) return [];
+  const msg =
+    c.max === 0
+    ? `${m.name}: groups may not include a handler`
+    : n === 0
+      ? `${m.name}: each group needs a handler`
+      : `${m.name}: ${describeCount(c)} handler(s) per group (has ${n})`;
+  return [issue('error', path, 'handler_count', msg)];
 }
 
 function limits(mode: RosterMode, scope: 'group' | 'roster', members: readonly Member[], path: string): ValidationIssue[] {

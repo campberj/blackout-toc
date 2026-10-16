@@ -1,5 +1,5 @@
 import type { ContentLookup } from '../content';
-import { createEventStore, type DispatchResult } from '../events';
+import { createEventStore, replay, type DispatchResult, type StoredEvent } from '../events';
 import { validateEvent, type CampaignCommandInput, type CampaignEvent, type StartCampaignInput } from './commands';
 import { createCampaignDecider } from './decider';
 import { createCampaignReducer } from './reducer';
@@ -22,10 +22,12 @@ export interface CampaignEngine {
   dispatch(command: CampaignCommandInput, opts?: { at?: string }): CampaignDispatchResult;
   /** Dry-run a command: the resulting state/events without committing (e.g. AAR preview). */
   preview(command: CampaignCommandInput): CampaignDispatchResult;
+  /** Remove every event of the last dispatched command and rebuild state. */
+  undo(): CampaignState;
   /** Truncate the log to `seq` (keep `seq <= n`) and rebuild state. */
-  undo(seq: number): CampaignState;
-  /** Replace the log with persisted events (payloads validated) and rebuild state. */
-  load(events: readonly CampaignEvent[]): { ok: true; state: CampaignState } | { ok: false; error: string };
+  truncate(seq: number): CampaignState;
+  /** Replace the log with persisted events (payloads validated; legacy events without `cmd` = one command each). */
+  load(events: readonly StoredEvent<CampaignEvent>[]): { ok: true; state: CampaignState } | { ok: false; error: string };
   /** Missions `beginMission` accepts now. */
   availableMissions(): MissionView[];
   readonly state: CampaignState;
@@ -37,7 +39,7 @@ export const campaignReducer = createCampaignReducer;
 
 /** Replay a full log from scratch. */
 export const replayCampaign = (content: ContentLookup, events: readonly CampaignEvent[]): CampaignState =>
-  events.reduce(createCampaignReducer(content), initialCampaignState());
+  replay(initialCampaignState(), events, createCampaignReducer(content));
 
 export function createCampaignEngine(content: ContentLookup): CampaignEngine {
   const store = createEventStore<CampaignState, CampaignCommandInput, CampaignEvent>({
@@ -49,7 +51,8 @@ export function createCampaignEngine(content: ContentLookup): CampaignEngine {
     start: (input, opts) => store.dispatch({ ...input, type: 'startCampaign' }, opts),
     dispatch: (command, opts) => store.dispatch(command, opts),
     preview: (command) => store.preview(command),
-    undo: (seq) => store.undo(seq),
+    undo: () => store.undo(),
+    truncate: (seq) => store.truncate(seq),
     load(events) {
       for (const e of events) {
         const err = validateEvent(e);

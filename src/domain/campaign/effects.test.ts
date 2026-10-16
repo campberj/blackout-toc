@@ -180,6 +180,45 @@ describe('effect ops', () => {
     expect(ctx.s.flags).not.toHaveProperty('y');
   });
 
+  it('forEachTeam: roster order, where per team, `team` target + team ladders = loop team, skips empty teams', () => {
+    run(ctx, scope(), { op: 'removeOperator', target: 'team:bravo', reason: 'transferred' }); // bravo now empty
+    run(ctx, scope(), {
+      op: 'forEachTeam',
+      effects: [
+        { op: 'addXp', target: 'team', amount: 1 },
+        { op: 'stepLadder', ladder: 'readiness', steps: 1 },
+        { op: 'addTeam', team: { key: 'late', name: 'Late', operators: [{ name: 'L' }] } },
+      ],
+    });
+    expect(['vale', 'op-2', 'juno', 'brook'].map((k) => op(ctx, k).stats.xp)).toEqual([1, 1, 1, 0]);
+    expect(['alpha', 'bravo', 'late'].map((t) => ctx.s.teams[t]!.ladders.readiness)).toEqual(['amber', 'green', 'green']);
+    expect(op(ctx, ctx.s.teams.late!.operators[0]!).stats.xp).toBe(0); // added mid-loop: not visited
+    run(ctx, scope(), {
+      op: 'forEachTeam',
+      where: { op: 'not', cond: { op: 'ladderIs', ladder: 'readiness', states: ['amber'] } },
+      effects: [{ op: 'setLadder', ladder: 'readiness', target: 'team', state: 'red' }],
+    });
+    expect(['alpha', 'bravo', 'late'].map((t) => ctx.s.teams[t]!.ladders.readiness)).toEqual(['amber', 'green', 'red']);
+  });
+
+  it('target filters evaluate `where` per operator as subject; `team` outside a loop = subject team', () => {
+    run(ctx, scope(), { op: 'addXp', target: { from: 'roster', where: { op: 'operatorStat', target: 'subject', stat: 'grit', cmp: 'gte', value: 3 } }, amount: 4 });
+    expect(['vale', 'brook', 'juno'].map((k) => op(ctx, k).stats.xp)).toEqual([4, 4, 0]);
+    run(ctx, scope({ subject: 'juno' }), { op: 'adjustStat', target: 'team', stat: 'kills', amount: 1 }, { op: 'addXp', target: 'team', amount: 1 });
+    expect(['vale', 'op-2', 'juno', 'brook'].map((k) => op(ctx, k).stats.kills)).toEqual([1, 1, 1, 0]);
+    run(ctx, scope(), { op: 'addXp', target: 'team', amount: 1 }); // no scope team → nobody
+    expect(op(ctx, 'brook').stats.xp).toBe(4);
+  });
+
+  it('rollTable byFaction picks the faction table, else the default', () => {
+    const fx = { op: 'rollTable', table: 'grim-only', byFaction: [{ faction: 'x', table: 'demo:night-events' }] };
+    run(ctx, scope(), fx);
+    expect(ctx.s.feed.at(-1)!.title).toBe('Grim Only');
+    ctx.s.faction = 'x';
+    run(ctx, scope(), fx);
+    expect(ctx.s.feed.some((f) => f.text.startsWith('Night Events:'))).toBe(true);
+  });
+
   it('covers every effect op in the DSL', () => {
     expect([...covered].sort()).toEqual([...EFFECT_OPS].sort());
   });

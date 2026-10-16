@@ -6,7 +6,9 @@ import { Scenario } from './scenario';
 import { Campaign, Table } from './campaign';
 
 export const PACK_FORMAT = 'blkout-pack';
-export const PACK_FORMAT_VERSION = 1;
+export const PACK_FORMAT_VERSION = 2;
+/** Accepted versions; v2 is a strict superset of v1 (no migration). v2-only features in a v1 pack are a loader error. */
+export const PACK_FORMAT_VERSIONS = [1, 2] as const;
 
 /** Content arrays keyed by pack-content kind; one entry per kind keeps errata + loader generic. */
 export const CONTENT_KINDS = {
@@ -108,7 +110,7 @@ export const Pack = z
   .strictObject({
     $schema: z.string().max(512).optional(),
     format: z.literal(PACK_FORMAT),
-    formatVersion: z.literal(PACK_FORMAT_VERSION),
+    formatVersion: z.literal(PACK_FORMAT_VERSIONS),
     /** Pack id = namespace for every local id inside. `user` is reserved for Forge output. */
     id: Slug,
     version: Semver,

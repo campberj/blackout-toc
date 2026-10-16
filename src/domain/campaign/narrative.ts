@@ -10,7 +10,7 @@ import type { CampaignState, Speaker } from './state';
  *   `operator.field.<key>`, `operator.ladder.<key>` (state name). Operator = scope subject.
  * - `team.{key,name,callsign,size}`, `team.ladder.<key>`, `team.asset.<key>`. Team = subject's team, else first team.
  * - `mission.{key,name,outcome,status}`. Mission = mission being begun/resolved.
- * - `campaign.{name,stage,stageKey}`, `campaign.ladder.<key>`, `campaign.asset.<key>`, `campaign.flag.<key>`.
+ * - `campaign.{name,stage,stageKey,faction,factionName}`, `campaign.ladder.<key>`, `campaign.asset.<key>`, `campaign.flag.<key>`.
  * - `track.<key>` (value), `track.<key>.{name,max}`; `pool.<key>` (value), `pool.<key>.name`.
  * - `persona.<key>` (callsign, else name), `persona.<key>.{name,callsign,role}`.
  *
@@ -71,6 +71,8 @@ export function resolveVar(campaign: Campaign, s: CampaignState, scope: Scope, p
       if (a === 'name') return campaign.name;
       if (a === 'stage') return named(campaign.timeline.stages, s.stage ?? undefined)?.name;
       if (a === 'stageKey') return s.stage;
+      if (a === 'faction') return s.faction;
+      if (a === 'factionName') return s.faction === null ? null : (named(campaign.factions ?? [], s.faction)?.name ?? s.faction);
       return undefined;
     }
     case 'track': {

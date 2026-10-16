@@ -1,4 +1,4 @@
-import type { Campaign, TriggerEvent } from '$lib/packs/schema';
+import type { Campaign, Condition, TriggerEvent } from '$lib/packs/schema';
 import type { ContentLookup } from '../content';
 import type { Rng } from '../rng/rng';
 import type { CampaignState, FeedEntry, FeedSource, Speaker } from './state';
@@ -14,6 +14,8 @@ export interface Scope {
   subject?: string | undefined;
   /** Mission being started/resolved (missionOutcome default, mission.* vars). */
   mission?: string | undefined;
+  /** forEachTeam loop team (`team` target, team ladders, teamMissions). */
+  team?: string | undefined;
   /** Operators recorded as participating in the AAR. */
   participants: readonly string[];
   /** Feed source for narrative produced in this scope. */
@@ -25,6 +27,7 @@ export interface TriggerInfo {
   mission?: string | undefined;
   track?: string | undefined;
   milestone?: string | undefined;
+  rank?: string | undefined;
   subject?: string | undefined;
 }
 
@@ -40,6 +43,8 @@ export interface Ctx {
   halted: boolean;
   /** Fire a trigger event (hook breaks the effects ↔ triggers import cycle). */
   fire(on: TriggerEvent, info: TriggerInfo, scope: Scope): void;
+  /** Evaluate a condition (hook lets target filters reuse the evaluator without an import cycle). */
+  check(scope: Scope, c: Condition): boolean;
 }
 
 export const emptyScope = (type: FeedSource = 'engine', key: string | null = null): Scope => ({ participants: [], source: { type, key } });

@@ -53,6 +53,9 @@ describe('templates', () => {
     expect(resolveVar(ctx.campaign, s, scope({ mission: 'hunt' }), 'mission.outcome')).toBeNull();
     expect(resolveVar(ctx.campaign, s, scope(), 'persona.actual.callsign')).toBeNull();
     expect(speakerOf(ctx.campaign, 'ghost')).toBeNull();
+    expect([r('campaign.faction'), r('campaign.factionName')]).toEqual([null, null]);
+    s.faction = 'rogue'; // key not in campaign.factions → key as name
+    expect([r('campaign.faction'), r('campaign.factionName')]).toEqual(['rogue', 'rogue']);
   });
 
   it('applies the content filter and narrative `when`', () => {

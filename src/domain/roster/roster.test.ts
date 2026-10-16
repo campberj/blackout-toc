@@ -10,8 +10,13 @@ const base = (): RosterInput => ({
   name: 'Lantern Team',
   rulesetId: 'demo:house',
   mode: 'matched',
-  groups: [{ forceCardId: 'demo:lantern-detachment', unitIds: ['demo:lantern-wardens', 'demo:choir-hulk', 'other-demo:scout-bike'] }],
-  handlerId: 'demo:warden-captain',
+  groups: [
+    {
+      forceCardId: 'demo:lantern-detachment',
+      handlerId: 'demo:warden-captain',
+      unitIds: ['demo:lantern-wardens', 'demo:choir-hulk', 'other-demo:scout-bike'],
+    },
+  ],
 });
 
 function withPacks(...extra: object[]) {
@@ -28,7 +33,9 @@ describe('Roster schema', () => {
   it('defaults groups/notes and rejects bare ids', () => {
     const r = Roster.parse({ id: 'x', name: 'X', rulesetId: 'demo:house', mode: 'core' });
     expect(r).toMatchObject({ groups: [], notes: '' });
-    expect(Roster.safeParse({ ...base(), handlerId: 'warden-captain' }).success).toBe(false);
+    expect(Roster.safeParse({ ...base(), groups: [{ handlerId: 'warden-captain' }] }).success).toBe(false);
+    // Roster-level handler is gone (v2); old records go through the collection migration.
+    expect(Roster.safeParse({ ...base(), handlerId: 'demo:warden-captain' }).success).toBe(false);
   });
 });
 
@@ -44,22 +51,23 @@ describe('validateRoster', () => {
 
   it('missing force, handler, too few units', () => {
     const r: RosterInput = { ...base(), groups: [{ unitIds: ['demo:lantern-wardens'] }] };
-    delete r.handlerId;
-    expect(paths(r)).toEqual(['groups.0.forceCardId:count', 'groups.0.unitIds:count', 'handlerId:count']);
-    expect(check(r)[1]!.message).toBe('Matched: exactly 3 unit(s) per group required (has 1)');
+    expect(paths(r)).toEqual(['groups.0.forceCardId:count', 'groups.0.unitIds:count', 'groups.0.handlerId:handler_count']);
+    expect(check(r).map((i) => i.message).slice(1)).toEqual([
+      'Matched: exactly 3 unit(s) per group required (has 1)',
+      'Matched: each group needs a handler',
+    ]);
   });
 
   it('group count, unresolved refs, duplicates, wrong handler type', () => {
     expect(paths({ ...base(), groups: [] })).toEqual(['groups:count']);
     const r = base();
-    r.groups = [{ forceCardId: 'demo:nope', unitIds: ['demo:lantern-wardens', 'demo:lantern-wardens', 'demo:ghost'] }];
-    r.handlerId = 'demo:choir-hulk';
+    r.groups = [{ forceCardId: 'demo:nope', handlerId: 'demo:choir-hulk', unitIds: ['demo:lantern-wardens', 'demo:lantern-wardens', 'demo:ghost'] }];
     expect(paths(r)).toEqual([
-      'handlerId:wrong_type',
       'groups.0.forceCardId:unresolved',
       'groups.0.unitIds.1:duplicate',
       'groups.0.unitIds.2:unresolved',
-      'groups.0.unitIds:count', // 0 handlers: the hostile in the handler slot is not one
+      'groups.0.handlerId:wrong_type',
+      'groups.0.handlerId:handler_count', // the hostile in the handler slot is not a handler
     ]);
   });
 
@@ -95,6 +103,36 @@ describe('validateRoster', () => {
     // Second duster in the group: units count 3 still, but 2 dusters > max 1 and 2 outsiders > 1.
     r.groups![0]!.unitIds = ['demo:lantern-wardens', 'mech:strider'];
     expect(paths({ ...r, dusterId: 'mech:walker' }, l)).toEqual(['groups.0:limit', 'dusterId:count']);
+  });
+
+  it('one handler per group: required / optional / forbidden via handlersPerGroup', () => {
+    const variant = (handlersPerGroup: object, groups = { min: 1, max: 2 }) => {
+      const d = structuredClone(demo) as Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
+      Object.assign(d.content.rulesets[0].rosterModes[0], { handlersPerGroup, groups, unitsPerGroup: { min: 1 }, distinctUnitsPerGroup: false });
+      const l = loadPacks([d, other]);
+      if (!l.ok) throw new Error('load');
+      return l.value.registry;
+    };
+    const two = (h0?: string, h1?: string): RosterInput => ({
+      ...base(),
+      groups: [
+        { forceCardId: 'demo:lantern-detachment', unitIds: ['demo:lantern-wardens'], ...(h0 ? { handlerId: h0 as never } : {}) },
+        { forceCardId: 'demo:lantern-detachment', unitIds: ['demo:lantern-wardens'], ...(h1 ? { handlerId: h1 as never } : {}) },
+      ],
+    });
+    const required = variant({ min: 1, max: 1 });
+    expect(paths(two('demo:warden-captain', 'demo:warden-captain'), required)).toEqual([]);
+    expect(paths(two('demo:warden-captain'), required)).toEqual(['groups.1.handlerId:handler_count']);
+    const optional = variant({ max: 1 });
+    expect(paths(two('demo:warden-captain'), optional)).toEqual([]);
+    // A second handler smuggled in as a unit breaks "one per group".
+    const extra = two('demo:warden-captain');
+    extra.groups![0]!.unitIds!.push('demo:warden-captain');
+    expect(check(extra, optional).map((i) => i.message)).toEqual(['Matched: at most 1 handler(s) per group (has 2)']);
+    const forbidden = variant({ max: 0 });
+    expect(check(two(undefined, 'demo:warden-captain'), forbidden).map((i) => `${i.path}:${i.message}`)).toEqual([
+      'groups.1.handlerId:Matched: groups may not include a handler',
+    ]);
   });
 
   it('allowedUnitTypes and roster-scope limits', () => {

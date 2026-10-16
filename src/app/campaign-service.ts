@@ -16,7 +16,14 @@ import type { IdSource, SeedSource } from './ports';
 
 // Campaign saves: event log + metadata, write-through on every accepted command (DESIGN §6, §8).
 
-const StoredEvent = z.object({ seq: z.number().int().min(1), type: z.string().min(1), at: z.string().optional(), payload: z.unknown() });
+// `cmd` (undo unit) is absent in saves written before per-command undo; engine.load fills it in.
+const StoredEvent = z.object({
+  seq: z.number().int().min(1),
+  cmd: z.number().int().min(1).optional(),
+  type: z.string().min(1),
+  at: z.string().optional(),
+  payload: z.unknown(),
+});
 
 export const CampaignSave = z.object({
   id: z.string().min(1).max(64),
@@ -230,9 +237,10 @@ export function createCampaignService(deps: CampaignServiceDeps): CampaignServic
 
     undo: (id) =>
       withEngine(id, async (save, engine) => {
-        const last = engine.events.at(-1)?.seq ?? 0;
-        if (last <= 1) return err('Nothing to undo: only the campaign start remains');
-        engine.undo(last - 1);
+        // Undo unit = one command (all its events); the start command is never undone.
+        const events = engine.events;
+        if (events.length === 0 || events.at(-1)!.cmd === events[0]!.cmd) return err('Nothing to undo: only the campaign start remains');
+        engine.undo();
         return ok(view(await persist(save, engine), engine));
       }),
 

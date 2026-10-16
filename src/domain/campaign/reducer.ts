@@ -1,9 +1,9 @@
-import type { AarField, Effect, Scalar } from '$lib/packs/schema';
+import type { AarField, Campaign, Effect, Scalar } from '$lib/packs/schema';
 import type { ContentLookup } from '../content';
 import type { Reducer } from '../events';
 import { createRng } from '../rng/rng';
 import type { Aar, CampaignEvent, EventPayload } from './commands';
-import { passes } from './conditions';
+import { evaluate, passes } from './conditions';
 import { emptyScope, log, pushFeed, type Ctx, type Scope } from './context';
 import { applyEffects, rollTable } from './effects';
 import { emitNarrative, showNarrative } from './narrative';
@@ -28,22 +28,28 @@ export function createCampaignReducer(content: ContentLookup): Reducer<CampaignS
       pushFeed(s, event.seq, { kind: 'error', text: `Campaign "${id ?? '?'}" is not loaded; event ${event.type} was not applied.`, source: { type: 'engine', key: null } });
       return s;
     }
-    const rng = createRng(event.type === 'CampaignStarted' ? event.payload.seed : s.rngState);
-    const ctx: Ctx = {
-      content,
-      campaign,
-      s,
-      rng,
-      seq: event.seq,
-      depth: 0,
-      steps: 0,
-      halted: false,
-      fire: (on, info, scope) => fireTrigger(ctx, on, info, scope),
-    };
+    const ctx = createCtx(content, campaign, s, event.type === 'CampaignStarted' ? event.payload.seed : s.rngState, event.seq);
     apply(ctx, event);
-    s.rngState = rng.state;
+    s.rngState = ctx.rng.state;
     return s;
   };
+}
+
+/** Interpreter context over a mutable working state (the only place hooks are wired). */
+export function createCtx(content: ContentLookup, campaign: Campaign, s: CampaignState, rngState: number, seq: number): Ctx {
+  const ctx: Ctx = {
+    content,
+    campaign,
+    s,
+    rng: createRng(rngState),
+    seq,
+    depth: 0,
+    steps: 0,
+    halted: false,
+    fire: (on, info, scope) => fireTrigger(ctx, on, info, scope),
+    check: (scope, c) => evaluate(ctx, scope, c),
+  };
+  return ctx;
 }
 
 function apply(ctx: Ctx, e: CampaignEvent): void {
@@ -99,7 +105,7 @@ function apply(ctx: Ctx, e: CampaignEvent): void {
 
 function startCampaign(ctx: Ctx, p: EventPayload<'CampaignStarted'>): void {
   const { s, campaign } = ctx;
-  Object.assign(s, { status: 'active', campaign: p.campaign, packs: { ...p.packs }, seed: p.seed, excludedTags: [...p.excludedTags] });
+  Object.assign(s, { status: 'active', campaign: p.campaign, packs: { ...p.packs }, seed: p.seed, excludedTags: [...p.excludedTags], faction: p.faction ?? null });
   for (const m of campaign.missions) s.missions[m.key] = { status: m.locked ? 'locked' : 'available', outcome: null, resolutions: 0, stage: null, custom: false, notes: null };
   for (const pool of campaign.pools) s.pools[pool.key] = pool.initial;
   for (const t of campaign.tracks) s.tracks[t.key] = { value: t.initial, fired: [] };
@@ -195,6 +201,9 @@ function resolveAar(ctx: Ctx, aar: Aar): void {
     op.stats.kills = (op.stats.kills ?? 0) + r.kills;
     pushHistory(ctx, op, 'mission', `${def.name}: ${outcome.name}${r.kills ? ` (${r.kills} kills)` : ''}${r.notes ? `. ${r.notes}` : ''}`);
   }
+  // Per-team stage participation (teamMissions), counted before effects so outcomes/triggers see it.
+  const stageCounts = (s.teamStageMissions[s.stage!] ??= {});
+  for (const team of new Set(participants.map((k) => s.operators[k]!.team))) stageCounts[team] = (stageCounts[team] ?? 0) + 1;
 
   // 2) Outcome effects, then mission-scope fields, then operator-scope fields per participant.
   const scope: Scope = { participants, mission: aar.mission, source };

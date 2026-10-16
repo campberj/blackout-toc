@@ -3,7 +3,7 @@ import { replayCampaign } from '$lib/domain/campaign';
 import { COLLECTIONS } from '$lib/ports';
 import type { Pack } from '$lib/packs/schema';
 import { bundle, clock, fx, ids, memStorage } from './__fixtures__';
-import { campaignPackVersions, createCampaignService, packDrift, type OpenCampaign } from './campaign-service';
+import { CAMPAIGN_EXPORT_FORMAT, campaignPackVersions, createCampaignService, packDrift, type OpenCampaign } from './campaign-service';
 import { createPackLibrary } from './pack-library';
 
 async function setup() {
@@ -70,7 +70,7 @@ describe('CampaignService', () => {
     expect((await svc.open('missing')).ok).toBe(false);
   });
 
-  it('preview does not persist; undo drops the last event but never the start', async () => {
+  it('preview does not persist; undo drops the last command but never the start', async () => {
     const { svc } = await setup();
     const o = must(await svc.create({ name: 'N', campaign: 'demo:long-night', teams: [{ key: 'ember' }] }));
     const p = must(await svc.preview(o.save.id, aarFor(o)));
@@ -79,12 +79,21 @@ describe('CampaignService', () => {
     expect((await svc.preview(o.save.id, { type: 'beginMission', mission: 'nope' })).ok).toBe(false);
 
     must(await svc.dispatch(o.save.id, aarFor(o)));
-    // One event per undo: the AAR goes, the implicit MissionBegun stays (mission active again).
+    // One command per undo: the AAR and its implicit MissionBegun go together.
     const u = must(await svc.undo(o.save.id));
-    expect(u.save.events.map((e) => e.type)).toEqual(['CampaignStarted', 'MissionBegun']);
-    expect(u.state.activeMission).toBe(o.available[0]!.key);
-    expect(must(await svc.undo(o.save.id)).state).toEqual(o.state);
+    expect(u.save.events.map((e) => e.type)).toEqual(['CampaignStarted']);
+    expect(u.state).toEqual(o.state);
+    expect(must(await svc.open(o.save.id)).save.events).toHaveLength(1);
     expect(await svc.undo(o.save.id)).toEqual({ ok: false, error: 'Nothing to undo: only the campaign start remains' });
+
+    // Legacy saves (events without `cmd`) still load; each event is its own undo step.
+    must(await svc.dispatch(o.save.id, aarFor(o)));
+    const legacy = must(await svc.open(o.save.id)).save;
+    expect(legacy.events.map((e) => e.cmd)).toEqual([1, 2, 2]);
+    const stripped = { ...legacy, events: legacy.events.map(({ cmd: _c, ...e }) => e) }; // eslint-disable-line @typescript-eslint/no-unused-vars
+    const imported = must(await svc.importSave(JSON.stringify({ format: CAMPAIGN_EXPORT_FORMAT, version: 1, save: stripped })));
+    const step = must(await svc.undo(imported.save.id));
+    expect(step.save.events.map((e) => e.type)).toEqual(['CampaignStarted', 'MissionBegun']);
   });
 
   it('reports pack drift as a warning and re-replays when the registry changes', async () => {

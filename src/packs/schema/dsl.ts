@@ -8,14 +8,15 @@ import { int, Key, LIMITS, list, LongText, Name, Ref, Scalar, ShortText, Tags } 
  * Operator selector, defined once and reused by every op that targets operators.
  * - `participants`: operators recorded as participating in the current mission's AAR
  * - `roster`: every active operator
- * - `subject`: the operator the current context is about (per-operator AAR field, onOperatorKia)
+ * - `subject`: the operator the current context is about (per-operator AAR field, onOperatorKia, onPromotion)
+ * - `team` (v2): active members of the scope team (the forEachTeam loop team, else the subject's team)
  * - `operator:<key>` / `team:<key>`: a named operator / every active operator in a team
  * Team/campaign-scoped ladders resolve operator targets to their team (or ignore target).
  */
-export const TARGET_KEYWORDS = ['participants', 'roster', 'subject'] as const;
+export const TARGET_KEYWORDS = ['participants', 'roster', 'subject', 'team'] as const;
 export const Target = z
   .union([z.enum(TARGET_KEYWORDS), z.templateLiteral(['operator:', Key]), z.templateLiteral(['team:', Key])])
-  .meta({ id: 'Target', description: "'participants' | 'roster' | 'subject' | 'operator:<key>' | 'team:<key>'" });
+  .meta({ id: 'Target', description: "'participants' | 'roster' | 'subject' | 'team' | 'operator:<key>' | 'team:<key>'" });
 
 /** How a multi-operator target satisfies a condition. */
 export const Quantifier = z.enum(['any', 'all', 'none']).default('any');
@@ -40,11 +41,42 @@ export const Condition = z
     cond('poolGte', { pool: Key, value: int(-9999, 9999) }),
     /** mission absent = the mission being resolved. */
     cond('missionOutcome', { mission: Key.optional(), outcomes: z.array(Key).min(1).max(8) }),
-    cond('ladderIs', { ladder: Key, target: Target.optional(), states: z.array(Key).min(1).max(16), match: Quantifier }),
-    cond('operatorStat', { target: Target, stat: Key, cmp: CMP, value: int(-9999, 9999), match: Quantifier }),
+    // `target` getters: TargetSpec embeds Condition (declared below); getters break the TS inference cycle.
+    z.strictObject({
+      op: z.literal('ladderIs'),
+      ladder: Key,
+      get target(): z.ZodOptional<typeof TargetSpec> {
+        return TargetSpec.optional();
+      },
+      states: z.array(Key).min(1).max(16),
+      match: Quantifier,
+    }),
+    z.strictObject({
+      op: z.literal('operatorStat'),
+      get target(): typeof TargetSpec {
+        return TargetSpec;
+      },
+      stat: Key,
+      cmp: CMP,
+      value: int(-9999, 9999),
+      match: Quantifier,
+    }),
     cond('stageIs', { stage: Key }),
     /** Seeded die roll: passes when 1d`sides` >= `gte`. */
     cond('roll', { sides: int(2, 100), gte: int(1, 100) }),
+    /** v2: an operator matches when it carries any of `tags`; `match` quantifies over the target. */
+    z.strictObject({
+      op: z.literal('hasTag'),
+      get target(): typeof TargetSpec {
+        return TargetSpec;
+      },
+      tags: z.array(Key).min(1).max(16),
+      match: Quantifier,
+    }),
+    /** v2: missions the scope team (loop team, else subject's team) took part in during the current stage. */
+    cond('teamMissions', { cmp: CMP, value: int(0, 99) }),
+    /** v2: the player's campaign faction is one of these (campaign.factions keys). */
+    cond('factionIs', { factions: z.array(Key).min(1).max(16) }),
     // Recursive members: explicit getter return types break the TS inference cycle.
     z.strictObject({
       op: z.literal('all'),
@@ -66,6 +98,12 @@ export const Condition = z
     }),
   ])
   .meta({ id: 'Condition' });
+
+/** v2: narrow a target; `where` is evaluated per operator with `subject` = that operator. */
+export const TargetFilter = z.strictObject({ from: Target, where: Condition }).meta({ id: 'TargetFilter' });
+
+/** What every target-taking op accepts (defined once). */
+export const TargetSpec = z.union([Target, TargetFilter]).meta({ id: 'TargetSpec', description: 'Target, or {from: Target, where: Condition}' });
 
 /** Narrative content; shared by NarrativeBlock, inline effect narrative, and table entries. */
 export const narrativeBody = {
@@ -119,30 +157,35 @@ export const TeamDef = z
 const eff = cond;
 const AMOUNT = int(-9999, 9999);
 
-export const REMOVE_REASONS = ['kia', 'mia', 'captured', 'retired', 'transferred'] as const;
+export const REMOVE_REASONS = ['kia', 'mia', 'captured', 'retired', 'transferred', 'destroyed'] as const;
+export const RemoveReason = z.enum(REMOVE_REASONS);
+
+/** v2: per-faction table override for rollTable. */
+export const FactionTable = z.strictObject({ faction: Key, table: Ref }).meta({ id: 'FactionTable' });
 
 export const Effect = z
   .discriminatedUnion('op', [
-    eff('addXp', { target: Target, amount: AMOUNT }),
+    eff('addXp', { target: TargetSpec, amount: AMOUNT }),
     /** Move along the ladder; clamps at the ends. Positive = toward the last state. */
-    eff('stepLadder', { ladder: Key, target: Target.optional(), steps: int(-16, 16) }),
-    eff('setLadder', { ladder: Key, target: Target.optional(), state: Key }),
+    eff('stepLadder', { ladder: Key, target: TargetSpec.optional(), steps: int(-16, 16) }),
+    eff('setLadder', { ladder: Key, target: TargetSpec.optional(), state: Key }),
     eff('adjustPool', { pool: Key, amount: AMOUNT }),
     eff('adjustTrack', { track: Key, amount: AMOUNT }),
     eff('setFlag', { flag: Key, value: Scalar.default(true) }),
     eff('addOperator', { team: Key, operator: OperatorSeed }),
-    eff('removeOperator', { target: Target, reason: z.enum(REMOVE_REASONS) }),
+    eff('removeOperator', { target: TargetSpec, reason: RemoveReason }),
     eff('addTeam', { team: TeamDef }),
     eff('unlockMission', { mission: Key, stage: Key.optional() }),
     eff('lockMission', { mission: Key }),
-    eff('rollTable', { table: Ref, times: int(1, 5).default(1) }),
+    /** `table` = default; v2 `byFaction` overrides it for the player's faction. */
+    eff('rollTable', { table: Ref, times: int(1, 5).default(1), byFaction: z.array(FactionTable).max(16).optional() }),
     eff('showNarrative', { narrative: NarrativeRef }),
     /** team absent = campaign-level asset. */
     eff('grantAsset', { asset: Key, team: Key.optional(), count: int(1, 99).default(1) }),
     /** rank absent = next rank on roster.ranks. */
-    eff('promote', { target: Target, rank: Key.optional() }),
+    eff('promote', { target: TargetSpec, rank: Key.optional() }),
     /** Generic operator stat change (custom stats from roster.stats; clamps to min/max). */
-    eff('adjustStat', { target: Target, stat: Key, amount: AMOUNT }),
+    eff('adjustStat', { target: TargetSpec, stat: Key, amount: AMOUNT }),
     /** Branch without duplicating outcomes. Recursive: getters break the TS inference cycle. */
     z.strictObject({
       op: z.literal('if'),
@@ -156,6 +199,16 @@ export const Effect = z
         return z.array(Effect).max(LIMITS.list).optional();
       },
     }),
+    /** v2: run `effects` once per active team (roster order); inside, `team` / team ladders = the loop team. */
+    z.strictObject({
+      op: z.literal('forEachTeam'),
+      get where(): z.ZodOptional<typeof Condition> {
+        return Condition.optional();
+      },
+      get effects(): z.ZodArray<typeof Effect> {
+        return z.array(Effect).max(LIMITS.list);
+      },
+    }),
   ])
   .meta({ id: 'Effect' });
 
@@ -165,6 +218,9 @@ export const EFFECT_OPS = Effect.options.map((o) => o.shape.op.value);
 export const CONDITION_OPS = Condition.options.map((o) => o.shape.op.value);
 
 export type Target = z.infer<typeof Target>;
+export type TargetFilter = z.infer<typeof TargetFilter>;
+export type TargetSpec = z.infer<typeof TargetSpec>;
+export type FactionTable = z.infer<typeof FactionTable>;
 export type Condition = z.infer<typeof Condition>;
 export type ConditionOp = Condition['op'];
 export type Effect = z.infer<typeof Effect>;

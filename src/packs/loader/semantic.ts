@@ -1,5 +1,5 @@
 import { BUILTIN_STATS } from '../schema';
-import { Campaign, type Condition, type Effect, Key, NarrativeRef, type Pack, Table } from '../schema';
+import { type AarField, Campaign, type Condition, type Effect, Key, NarrativeRef, type Pack, Table, type TargetSpec } from '../schema';
 import type { Campaign as CampaignT, Table as TableT } from '../schema';
 import { packOf } from './content-kinds';
 import type { ContentIndex } from './errata';
@@ -45,6 +45,7 @@ interface CampaignKeys {
   teams: Set<string>;
   operators: Set<string>;
   assets: Set<string>;
+  factions: Set<string>;
   outcomes: Set<string>; // union, for missionOutcome without mission
 }
 
@@ -75,6 +76,7 @@ function campaignKeys(c: CampaignT): CampaignKeys {
     teams,
     operators,
     assets: keys(c.assets),
+    factions: keys(c.factions ?? []),
     outcomes: new Set(c.missions.flatMap((m) => m.outcomes.map((o) => o.key))),
   };
 }
@@ -83,9 +85,12 @@ function keyChecker(k: CampaignKeys, report: Report, ctx: string) {
   const need = (set: { has(k: string): boolean } | undefined, what: string, key: string | undefined, path: Path) => {
     if (key !== undefined && !set?.has(key)) report('unresolved_key', path, `Unknown ${what} "${key}"${ctx}`);
   };
-  const target = (t: string | undefined, path: Path) => {
-    if (t?.startsWith('team:')) need(k.teams, 'team', t.slice(5), path);
-    else if (t?.startsWith('operator:')) need(k.operators, 'operator', t.slice(9), path);
+  /** Filter `where` conditions are reached by the DSL walker; only the base target's keys are checked here. */
+  const target = (spec: TargetSpec | undefined, path: Path) => {
+    const t = typeof spec === 'object' ? spec.from : spec;
+    const p = typeof spec === 'object' ? [...path, 'from'] : path;
+    if (t?.startsWith('team:')) need(k.teams, 'team', t.slice(5), p);
+    else if (t?.startsWith('operator:')) need(k.operators, 'operator', t.slice(9), p);
   };
   const ladder = (name: string, states: readonly string[], path: Path, statePath: (i: number) => Path) => {
     need(k.ladders, 'ladder', name, [...path, 'ladder']);
@@ -118,11 +123,15 @@ function keyChecker(k: CampaignKeys, report: Report, ctx: string) {
         return need(k.stats, 'stat', c.stat, [...p, 'stat']);
       case 'stageIs':
         return need(k.stages, 'stage', c.stage, [...p, 'stage']);
+      case 'hasTag':
+        return target(c.target, [...p, 'target']);
+      case 'factionIs':
+        return c.factions.forEach((f, i) => need(k.factions, 'faction', f, [...p, 'factions', i]));
     }
   };
 
   const effect = (e: Effect, p: Path) => {
-    if ('target' in e && typeof e.target === 'string') target(e.target, [...p, 'target']);
+    if ('target' in e) target(e.target, [...p, 'target']);
     switch (e.op) {
       case 'stepLadder':
         return ladder(e.ladder, [], p, () => p);
@@ -146,6 +155,8 @@ function keyChecker(k: CampaignKeys, report: Report, ctx: string) {
         return need(k.ranks, 'rank', e.rank, [...p, 'rank']);
       case 'adjustStat':
         return need(k.stats, 'stat', e.stat, [...p, 'stat']);
+      case 'rollTable':
+        return e.byFaction?.forEach((f, i) => need(k.factions, 'faction', f.faction, [...p, 'byFaction', i, 'faction']));
     }
   };
 
@@ -169,7 +180,9 @@ function reachableTables(c: CampaignT, idx: ContentIndex): TableT[] {
   const tables = idx.get('table')! as Map<string, TableT>;
   const seen = new Set<string>();
   const queue: string[] = c.roster.nameTable ? [c.roster.nameTable] : [];
-  const collect = { effect: (e: Effect) => void (e.op === 'rollTable' && queue.push(e.table)) };
+  const collect = {
+    effect: (e: Effect) => void (e.op === 'rollTable' && queue.push(e.table, ...(e.byFaction ?? []).map((f) => f.table))),
+  };
   walkDslIn(Campaign, c, collect);
   const out: TableT[] = [];
   while (queue.length) {
@@ -214,15 +227,18 @@ export function validateCampaign(pack: Pack, ci: number, idx: ContentIndex, loca
     own.need(k.stages, 'stage', f.stage, [...p, 'stage']);
     own.need(k.missions, 'mission', f.mission, [...p, 'mission']);
     own.need(k.tracks, 'track', f.track, [...p, 'track']);
+    own.need(k.ranks, 'rank', f.rank, [...p, 'rank']);
+    if (f.rank !== undefined && t.on !== 'onPromotion')
+      errors.push(loadError('invalid_value', [...p, 'rank'], `filter.rank only applies to onPromotion triggers`, pack.id));
     if (f.milestone !== undefined) {
       const tracks = f.track !== undefined ? [k.tracks.get(f.track)] : [...k.tracks.values()];
       if (!tracks.some((tr) => tr?.milestones.has(f.milestone!)))
         own.need(undefined, 'milestone', f.milestone, [...p, 'milestone']);
     }
   });
-  c.missions.forEach((m, mi) =>
-    m.aar.fields.forEach((f, fi) => {
-      const p = [...root, 'missions', mi, 'aar', 'fields', fi];
+  const aarFields = (fields: readonly AarField[], base: Path) =>
+    fields.forEach((f, fi) => {
+      const p = [...base, fi];
       const bad = (path: Path, msg: string) => errors.push(loadError('invalid_value', path, msg, pack.id));
       if (f.perUnit.length && f.kind !== 'number') bad([...p, 'perUnit'], `perUnit requires kind 'number' (field "${f.key}" is '${f.kind}')`);
       f.onValue.forEach((ov, vi) => {
@@ -231,8 +247,9 @@ export function validateCampaign(pack: Pack, ci: number, idx: ContentIndex, loca
         else if (f.kind === 'boolean' && typeof ov.value !== 'boolean') bad(vp, `Field "${f.key}" expects a boolean`);
         else if (f.kind === 'number' && typeof ov.value !== 'number') bad(vp, `Field "${f.key}" expects a number`);
       });
-    }),
-  );
+    });
+  c.missions.forEach((m, mi) => aarFields(m.aar.fields, [...root, 'missions', mi, 'aar', 'fields']));
+  if (c.customMission) aarFields(c.customMission.aar.fields, [...root, 'customMission', 'aar', 'fields']);
 
   // Shared tables: their effects/speakers must make sense in every campaign that rolls them.
   for (const t of reachableTables(c, idx)) {

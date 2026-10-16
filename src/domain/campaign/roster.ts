@@ -86,7 +86,7 @@ export function createOperator(ctx: Ctx, scope: Scope, team: string, seed: Opera
   s.teams[team]!.operators.push(key);
   history(ctx, op, 'joined', `Joined ${s.teams[team]!.name}`);
   log(ctx, `${name} joined ${s.teams[team]!.name}.`, { type: 'roster', key });
-  autoPromote(ctx, key);
+  autoPromote(ctx, scope, key);
   return key;
 }
 
@@ -120,36 +120,39 @@ export function createTeam(ctx: Ctx, scope: Scope, def: TeamDef, extra: readonly
 }
 
 /** Apply a stat delta (clamped). `xp` also checks auto-promotion. */
-export function adjustOperatorStat(ctx: Ctx, opKey: string, stat: string, amount: number): void {
+export function adjustOperatorStat(ctx: Ctx, scope: Scope, opKey: string, stat: string, amount: number): void {
   const op = ctx.s.operators[opKey]!;
   const before = op.stats[stat] ?? 0;
   const after = clampStat(ctx, stat, before + amount);
   if (after === before) return;
   op.stats[stat] = after;
   history(ctx, op, stat === 'xp' ? 'xp' : 'stat', `${stat} ${before} → ${after}`);
-  if (stat === 'xp') autoPromote(ctx, opKey);
+  if (stat === 'xp') autoPromote(ctx, scope, opKey);
 }
 
 const rankIndex = (ctx: Ctx, rank: string | null) => ctx.campaign.roster.ranks.findIndex((r) => r.key === rank);
 
 /** Promote upward to the highest rank whose xp threshold is met (never demotes; xp-less ranks are promote-only). */
-export function autoPromote(ctx: Ctx, opKey: string): void {
+export function autoPromote(ctx: Ctx, scope: Scope, opKey: string): void {
   const op = ctx.s.operators[opKey]!;
   const ranks = ctx.campaign.roster.ranks;
   let best = rankIndex(ctx, op.rank);
   ranks.forEach((r, i) => {
     if (r.xp !== undefined && (op.stats.xp ?? 0) >= r.xp && i > best) best = i;
   });
-  if (best > rankIndex(ctx, op.rank)) setRank(ctx, opKey, ranks[best]!.key);
+  if (best > rankIndex(ctx, op.rank)) setRank(ctx, scope, opKey, ranks[best]!.key);
 }
 
-export function setRank(ctx: Ctx, opKey: string, rank: string): void {
+/** Set a rank; moving up the rank list fires onPromotion with `subject` = the operator. */
+export function setRank(ctx: Ctx, scope: Scope, opKey: string, rank: string): void {
   const op = ctx.s.operators[opKey]!;
   if (op.rank === rank) return;
+  const up = rankIndex(ctx, rank) > rankIndex(ctx, op.rank);
   const name = ctx.campaign.roster.ranks.find((r) => r.key === rank)?.name ?? rank;
   op.rank = rank;
-  history(ctx, op, 'rank', `Promoted to ${name}`);
-  log(ctx, `${op.name} promoted to ${name}.`, { type: 'roster', key: opKey });
+  history(ctx, op, 'rank', `${up ? 'Promoted' : 'Rank set'} to ${name}`);
+  log(ctx, `${op.name} ${up ? 'promoted' : 'rank set'} to ${name}.`, { type: 'roster', key: opKey });
+  if (up) ctx.fire('onPromotion', { stage: ctx.s.stage ?? undefined, rank, subject: opKey }, { ...scope, subject: opKey });
 }
 
 /** Next rank in roster order, or undefined at the top. */

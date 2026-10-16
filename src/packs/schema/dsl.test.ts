@@ -7,15 +7,41 @@ describe('DSL op sets (frozen at G1 — DESIGN §6)', () => {
       'addXp', 'stepLadder', 'setLadder', 'adjustPool', 'adjustTrack', 'setFlag', 'addOperator', 'removeOperator',
       'addTeam', 'unlockMission', 'lockMission', 'rollTable', 'showNarrative', 'grantAsset', 'promote',
       'adjustStat', 'if',
+      'forEachTeam', // v2
     ]);
   });
   it('conditions', () => {
-    expect(CONDITION_OPS).toEqual(['flag', 'trackGte', 'poolGte', 'missionOutcome', 'ladderIs', 'operatorStat', 'stageIs', 'roll', 'all', 'any', 'not']);
+    expect(CONDITION_OPS).toEqual([
+      'flag', 'trackGte', 'poolGte', 'missionOutcome', 'ladderIs', 'operatorStat', 'stageIs', 'roll',
+      'hasTag', 'teamMissions', 'factionIs', // v2
+      'all', 'any', 'not',
+    ]);
+  });
+});
+
+describe('v2 extensions', () => {
+  it('target-taking ops accept {from, where} filters, including nested ones', () => {
+    const where = { op: 'hasTag', target: 'subject', tags: ['medic'] };
+    expect(Effect.safeParse({ op: 'addXp', target: { from: 'team', where }, amount: 1 }).success).toBe(true);
+    expect(Effect.safeParse({ op: 'stepLadder', ladder: 'l', target: { from: 'roster', where: { op: 'not', cond: where } }, steps: 1 }).success).toBe(true);
+    expect(Condition.safeParse({ op: 'operatorStat', target: { from: 'roster', where: { op: 'ladderIs', ladder: 'l', target: { from: 'subject', where }, states: ['a'] } }, stat: 'xp', value: 1 }).success).toBe(true);
+    expect(Effect.safeParse({ op: 'addXp', target: { from: 'roster' }, amount: 1 }).success).toBe(false);
+    expect(Effect.safeParse({ op: 'addXp', target: { from: 'everyone', where }, amount: 1 }).success).toBe(false);
+  });
+
+  it('forEachTeam, byFaction, destroyed, new conditions', () => {
+    expect(Effect.parse({ op: 'forEachTeam', effects: [{ op: 'setLadder', ladder: 'r', target: 'team', state: 'red' }] })).toMatchObject({ op: 'forEachTeam' });
+    expect(Effect.parse({ op: 'rollTable', table: 't', byFaction: [{ faction: 'a', table: 'p:u' }] })).toMatchObject({ times: 1 });
+    expect(Effect.parse({ op: 'rollTable', table: 't' })).not.toHaveProperty('byFaction');
+    expect(Effect.safeParse({ op: 'removeOperator', target: 'subject', reason: 'destroyed' }).success).toBe(true);
+    expect(Condition.parse({ op: 'teamMissions', value: 3 })).toEqual({ op: 'teamMissions', cmp: 'gte', value: 3 });
+    expect(Condition.safeParse({ op: 'factionIs', factions: [] }).success).toBe(false);
+    expect(Condition.parse({ op: 'hasTag', target: 'team', tags: ['x'] })).toMatchObject({ match: 'any' });
   });
 });
 
 describe('Target selector', () => {
-  it.each(['participants', 'roster', 'subject', 'operator:wren', 'team:ember'])('accepts %j', (t) => expect(Target.safeParse(t).success).toBe(true));
+  it.each(['participants', 'roster', 'subject', 'team', 'operator:wren', 'team:ember'])('accepts %j', (t) => expect(Target.safeParse(t).success).toBe(true));
   it.each(['everyone', 'operator:', 'team:Ember', 'squad:a', 'operator:a:b'])('rejects %j', (t) => expect(Target.safeParse(t).success).toBe(false));
 });
 

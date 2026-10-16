@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "BLKOUT: Tactical Operations Center — unofficial fan companion app",
+  "description": "BLKOUT: Tactical Operations Center \u2014 unofficial fan companion app",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -13,7 +13,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "ci": "npm run lint && npm run check && npm run test && npm run build",
-    "schema": "node --experimental-strip-types --no-warnings scripts/emit-schema.ts"
+    "schema": "node --experimental-strip-types --no-warnings scripts/emit-schema.ts",
+    "pack:gemini": "node tools/build-gemini.mjs packs/blackfall-gemini.json"
   },
   "engines": {
     "node": ">=22"

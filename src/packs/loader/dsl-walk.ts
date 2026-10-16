@@ -1,5 +1,5 @@
 import type { z } from 'zod';
-import { Condition, Effect } from '../schema';
+import { Condition, Effect, type TargetSpec } from '../schema';
 import type { Path } from './errors';
 import { traverse } from './traverse';
 
@@ -12,18 +12,29 @@ export interface DslVisitor {
   condition?(condition: Condition, path: Path): 'skip' | void;
 }
 
+/** Target filters embed a Condition (`{from, where}`). */
+function walkTarget(node: { target?: TargetSpec | undefined }, v: DslVisitor, path: Path): void {
+  if (typeof node.target === 'object') walkCondition(node.target.where, v, [...path, 'target', 'where']);
+}
+
 export function walkCondition(c: Condition, v: DslVisitor, path: Path = []): void {
   if (v.condition?.(c, path) === 'skip') return;
   if (c.op === 'all' || c.op === 'any') c.of.forEach((x, i) => walkCondition(x, v, [...path, 'of', i]));
   else if (c.op === 'not') walkCondition(c.cond, v, [...path, 'cond']);
+  else if ('target' in c) walkTarget(c, v, path);
 }
 
 export function walkEffect(e: Effect, v: DslVisitor, path: Path = []): void {
   if (v.effect?.(e, path) === 'skip') return;
-  if (e.op !== 'if') return;
-  walkCondition(e.cond, v, [...path, 'cond']);
-  walkEffects(e.then, v, [...path, 'then']);
-  if (e.else) walkEffects(e.else, v, [...path, 'else']);
+  if ('target' in e) walkTarget(e, v, path);
+  if (e.op === 'if') {
+    walkCondition(e.cond, v, [...path, 'cond']);
+    walkEffects(e.then, v, [...path, 'then']);
+    if (e.else) walkEffects(e.else, v, [...path, 'else']);
+  } else if (e.op === 'forEachTeam') {
+    if (e.where) walkCondition(e.where, v, [...path, 'where']);
+    walkEffects(e.effects, v, [...path, 'effects']);
+  }
 }
 
 export function walkEffects(effects: readonly Effect[], v: DslVisitor, path: Path = []): void {

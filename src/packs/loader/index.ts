@@ -6,4 +6,5 @@ export { satisfies, parseRange, parseVersion, compare, type SemVer, type SemverR
 export { resolveDependencies, type DependencyPlan } from './deps';
 export { namespacePack, qualify, collectRefs, refFieldNames, REF_FIELD_KIND, type RefSite } from './namespace';
 export { walkCondition, walkEffect, walkEffects, walkDslIn, type DslVisitor } from './dsl-walk';
+export { checkFormatVersion, V2_FEATURES } from './format-version';
 export { traverse, visitAll, fieldsWhere, type Visitor, type VisitNode } from './traverse';

@@ -160,6 +160,7 @@ exports[`golden: Iron Test > seed + scripted commands → expected state > state
   "excludedTags": [
     "gore",
   ],
+  "faction": null,
   "feed": 76,
   "firedTriggers": [
     "m3-flag",
@@ -513,6 +514,16 @@ exports[`golden: Iron Test > seed + scripted commands → expected state > state
     "alpha",
     "bravo",
   ],
+  "teamStageMissions": {
+    "one": {
+      "alpha": 1,
+      "bravo": 1,
+    },
+    "three": {},
+    "two": {
+      "alpha": 1,
+    },
+  },
   "teams": {
     "alpha": {
       "assets": {
@@ -577,6 +588,7 @@ exports[`golden: demo pack > runs The Long Night end to end 1`] = `
   "excludedTags": [
     "mature-themes",
   ],
+  "faction": null,
   "feed": [
     "Team Ember formed.",
     "Wren joined Team Ember.",
@@ -802,6 +814,12 @@ exports[`golden: demo pack > runs The Long Night end to end 1`] = `
     "ember",
     "spare",
   ],
+  "teamStageMissions": {
+    "dusk": {
+      "ember": 1,
+    },
+    "midnight": {},
+  },
   "teams": {
     "ember": {
       "assets": {

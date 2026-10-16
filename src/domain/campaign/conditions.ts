@@ -1,6 +1,6 @@
 import type { Condition } from '$lib/packs/schema';
 import { warn, type Ctx, type Scope } from './context';
-import { resolveLadderSlots, resolveOperators } from './targets';
+import { resolveLadderSlots, resolveOperators, scopeTeam } from './targets';
 
 type Match = 'any' | 'all' | 'none';
 
@@ -34,10 +34,19 @@ export function evaluate(ctx: Ctx, scope: Scope, c: Condition): boolean {
         warn(ctx, `Unknown ladder "${c.ladder}" in condition`);
         return false;
       }
-      return quantify(resolveLadderSlots(s, scope, ladder, c.target), c.match, (slot) => c.states.includes(slot.get() ?? ''));
+      return quantify(resolveLadderSlots(ctx, scope, ladder, c.target), c.match, (slot) => c.states.includes(slot.get() ?? ''));
     }
     case 'operatorStat':
-      return quantify(resolveOperators(s, scope, c.target), c.match, (k) => compare(s.operators[k]!.stats[c.stat] ?? 0, c.cmp, c.value));
+      return quantify(resolveOperators(ctx, scope, c.target), c.match, (k) => compare(s.operators[k]!.stats[c.stat] ?? 0, c.cmp, c.value));
+    case 'hasTag':
+      return quantify(resolveOperators(ctx, scope, c.target), c.match, (k) => s.operators[k]!.tags.some((t) => c.tags.includes(t)));
+    case 'teamMissions': {
+      const team = scopeTeam(ctx, scope);
+      const n = team && s.stage ? (s.teamStageMissions[s.stage]?.[team] ?? 0) : 0;
+      return compare(n, c.cmp, c.value);
+    }
+    case 'factionIs':
+      return s.faction !== null && c.factions.includes(s.faction);
     case 'stageIs':
       return s.stage === c.stage;
     case 'roll':

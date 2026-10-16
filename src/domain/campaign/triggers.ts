@@ -4,7 +4,7 @@ import type { Ctx, Scope, TriggerInfo } from './context';
 import { adjustPool, applyEffects } from './effects';
 import { showNarrative } from './narrative';
 
-const FILTER_KEYS = ['stage', 'mission', 'track', 'milestone'] as const;
+const FILTER_KEYS = ['stage', 'mission', 'track', 'milestone', 'rank'] as const;
 
 const filterMatches = (t: Trigger, info: TriggerInfo) => FILTER_KEYS.every((k) => t.filter?.[k] === undefined || t.filter[k] === info[k]);
 
