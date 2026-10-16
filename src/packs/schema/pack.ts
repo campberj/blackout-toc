@@ -22,6 +22,19 @@ export const CONTENT_KINDS = {
 } as const;
 export type ContentKind = keyof typeof CONTENT_KINDS;
 
+/** Kind → PackContent array key. Declared once so every loader pass stays kind-generic. */
+export const CONTENT_KEYS = {
+  keyword: 'keywords',
+  faction: 'factions',
+  force: 'forces',
+  unit: 'units',
+  ruleset: 'rulesets',
+  calibration: 'calibrations',
+  scenario: 'scenarios',
+  table: 'tables',
+  campaign: 'campaigns',
+} as const satisfies Record<ContentKind, Exclude<keyof z.input<typeof PackContent>, 'errata'>>;
+
 type AnyObject = z.ZodObject<z.ZodRawShape>;
 
 /** Unwrap default/prefault so a patch never injects defaults over the target's values. */

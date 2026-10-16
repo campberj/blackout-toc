@@ -11,6 +11,10 @@ export default defineConfig({
   test: {
     include: ['src/**/*.test.ts'],
     environment: 'node',
-    coverage: { provider: 'v8', include: ['src/domain/**', 'src/packs/**', 'src/app/**'] },
+    coverage: {
+      provider: 'v8',
+      include: ['src/domain/**/*.ts', 'src/packs/**/*.ts', 'src/app/**/*.ts', 'src/adapters/**/*.ts', 'src/ports/**/*.ts'],
+      exclude: ['**/*.test.ts', '**/__fixtures__/**', '**/__snapshots__/**', 'src/adapters/file/browser.ts'],
+    },
   },
 });

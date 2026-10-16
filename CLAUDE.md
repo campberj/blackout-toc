@@ -9,6 +9,7 @@ Read `docs/DESIGN.md` before any work. It is the source of truth; if code and do
 - **SOLID/DRY:** one module, one reason to change. Small ports. Shared card renderer. No copy-paste logic — extract.
 - **No ESS content:** never commit official card stats, rules text, or art. Test fixtures use invented units.
 - **Tests:** every domain module ships `*.test.ts`. Engine changes need a golden test (seed + inputs → state).
+- **Fallible returns:** discriminated `{ok:true,…}|{ok:false,error}`; new code uses `Result<T,E>` from `src/domain/result.ts`.
 - **Done =** `npm run ci` green.
 - **Brevity:** terse code comments (why, not what), terse reports.
 
