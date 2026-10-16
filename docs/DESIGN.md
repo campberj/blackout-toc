@@ -37,6 +37,9 @@ Non-goals (v1): rules adjudication (app tracks state, player resolves dice), AI 
 | D13 | Schemas + DSL frozen at G1; changes need `formatVersion` bump + migration | Published packs must keep loading |
 | D14 | Official card data lives in user-made pack id **`blkout`**; local id = printed card code lowercased (`blkout:tfb-9861`, `blkout:hndl-224`) | Independently typed packs agree on ids without sharing ESS data |
 | D15 | GEMINI reference pack ships **public** in `packs/` — narrative only, fan-content attribution, no ESS stats/rules text | Worked example for authors and AI guide |
+| D17 | Dashboard tracks **both sides** (player roster in detail + OPFOR panel); works for 2 players on one tablet | Solo play runs an AI force |
+| D18 | Dashboard → campaign **AAR pre-fill** via `src/app/contracts/game-campaign.ts` | No re-typing results |
+| D19 | DSL v2 shipped (formatVersion 2). `choose` (player-choice) effect deferred to v3 | Unblock UI wave |
 | D16 | Reference pack scope = full framework + Window 1 + generic later windows | Playable beyond W1 without inventing the Intel-15 reveal |
 
 ## 3. Architecture
