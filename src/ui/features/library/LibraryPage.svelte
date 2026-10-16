@@ -1,61 +1,79 @@
 <script lang="ts">
+  import { formatLoadError, type PackInfo } from '../../../app';
+  import { useAppState } from '../../state/app-context.svelte';
   import Page from '../../shell/Page.svelte';
   import Tabs from '../../components/Tabs.svelte';
-  import Button from '../../components/Button.svelte';
-  import Icon from '../../components/Icon.svelte';
-  import CardView from '../../components/card/CardView.svelte';
-  import { DEMO_CARDS } from '../../components/card/demo-cards';
-  import type { CardVariant } from '$lib/app/view-models/card-view-model';
+  import Panel from '../../components/Panel.svelte';
+  import JsonImport from '../../components/JsonImport.svelte';
+  import { toasts } from '../../components/toast.svelte';
+  import PackList from './PackList.svelte';
+  import LoadRecovery from './LoadRecovery.svelte';
+  import ContentBrowser from './ContentBrowser.svelte';
+  import KeywordGlossary from './KeywordGlossary.svelte';
 
-  const VIEWS = [
-    { id: 'full', label: 'Full' },
-    { id: 'compact', label: 'Compact' },
-    { id: 'print', label: 'Print' },
-  ] as const;
+  const app = useAppState();
 
-  let view = $state<string>('full');
-  const variant = $derived(view as CardVariant);
+  const TABS = [
+    { id: 'cards', label: 'Cards' },
+    { id: 'packs', label: 'Packs' },
+    { id: 'keywords', label: 'Keywords' },
+  ];
+
+  let packs = $state<PackInfo[]>([]);
+  // Open on Packs when something needs fixing.
+  let tab = $state(app.loadErrors.length > 0 ? 'packs' : 'cards');
+
+  async function refresh() {
+    if (app.status === 'ready') packs = await app.ctx.library.list();
+  }
+
+  $effect(() => {
+    void app.snapshot;
+    void refresh();
+  });
+
+  async function importPack(input: unknown): Promise<string[]> {
+    const r = await app.ctx.library.import(input);
+    if (!r.ok) return r.error.map(formatLoadError);
+    toasts.push(`Pack “${r.value.id}” ${r.value.replaced ? 'updated' : 'imported'}`, 'ok');
+    await refresh();
+    return [];
+  }
 </script>
 
-<Page title="Library" purpose="Browse every unit and force card from your imported packs.">
-  {#snippet actions()}
-    <Button onclick={() => window.print()}><Icon name="print" size={18} />Print cards</Button>
-  {/snippet}
+<Page title="Library" purpose="Manage card and campaign packs, browse unit and force cards, and look up keywords.">
+  {#if app.status === 'loading'}
+    <p class="muted">Loading packs…</p>
+  {:else if app.status === 'ready'}
+    {#if app.snapshot && app.snapshot.errors.length > 0}
+      <LoadRecovery errors={app.snapshot.errors} {packs} {refresh} />
+    {/if}
 
-  <p class="note no-print">Demo cards below are invented placeholders for layout review, not game content.</p>
-
-  <div class="no-print">
-    <Tabs label="Card view" tabs={VIEWS} bind:selected={view}>
-      {#snippet panel()}
-        <div class="grid" class:compact={variant === 'compact'}>
-          {#each DEMO_CARDS as card (card.id)}
-            <CardView {card} {variant} />
-          {/each}
-        </div>
+    <Tabs label="Library sections" tabs={TABS} bind:selected={tab}>
+      {#snippet panel(id)}
+        {#if id === 'packs'}
+          <div class="stack">
+            <Panel title="Import a pack" level={2}>
+              <p class="muted lead">Packs are JSON files. Importing a pack with an id you already have replaces it.</p>
+              <JsonImport noun="pack" onimport={importPack} />
+            </Panel>
+            <PackList {packs} {refresh} />
+          </div>
+        {:else if id === 'keywords'}
+          <KeywordGlossary />
+        {:else}
+          <ContentBrowser />
+        {/if}
       {/snippet}
     </Tabs>
-  </div>
-
-  <!-- Paper always gets the print variant, whatever view is on screen. -->
-  <div class="print-only print-card-grid">
-    {#each DEMO_CARDS as card (card.id)}
-      <CardView {card} variant="print" />
-    {/each}
-  </div>
+  {/if}
 </Page>
 
 <style>
-  .note {
+  .muted {
     color: var(--c-text-muted);
-    font-size: var(--fs-sm);
   }
-  .grid {
-    display: grid;
-    gap: var(--sp-4);
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 21rem), 1fr));
-    align-items: start;
-  }
-  .grid.compact {
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+  .lead {
+    margin-bottom: var(--sp-3);
   }
 </style>
