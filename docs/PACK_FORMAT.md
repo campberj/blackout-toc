@@ -1,10 +1,10 @@
 # BLKOUT: TOC — Pack Format Reference
 
-Format `blkout-pack`, **formatVersion 1** (frozen at G1, DESIGN D13). Authoritative machine schema: [`docs/schema/pack.schema.json`](schema/pack.schema.json) (JSON Schema 2020-12, generated from `src/packs/schema` by `npm run schema`). This document explains it; when they disagree, the schema wins. Field tables below were generated from that file.
+Format `blkout-pack`, **formatVersion 2** (current; 1 still loads, see [Format versions](#format-versions)). Authoritative machine schema: [`docs/schema/pack.schema.json`](schema/pack.schema.json) (JSON Schema 2020-12, generated from `src/packs/schema` by `npm run schema`). This document explains it; when they disagree, the schema wins. Field tables below were generated from that file.
 
 For writing campaigns, see [`CAMPAIGN_AUTHORING_GUIDE.md`](CAMPAIGN_AUTHORING_GUIDE.md). Worked example: [`packs/blackfall-gemini.json`](../packs/blackfall-gemini.json).
 
-Contents: [1 Envelope](#1-envelope) · [2 Ids](#2-ids-and-namespacing) · [3 Dependencies](#3-dependencies-and-semver) · [4 Errata](#4-errata) · [5 Content kinds](#5-content-kinds) · [6 Campaigns](#6-campaigns) · [7 DSL](#7-effect--condition-dsl) · [8 Runtime semantics](#8-runtime-semantics) · [9 Validation errors](#9-validation-errors)
+Contents: [Format versions](#format-versions) · [1 Envelope](#1-envelope) · [2 Ids](#2-ids-and-namespacing) · [3 Dependencies](#3-dependencies-and-semver) · [4 Errata](#4-errata) · [5 Content kinds](#5-content-kinds) · [6 Campaigns](#6-campaigns) · [7 DSL](#7-effect--condition-dsl) · [8 Runtime semantics](#8-runtime-semantics) · [9 Validation errors](#9-validation-errors)
 
 ## Conventions
 
@@ -15,13 +15,22 @@ Contents: [1 Envelope](#1-envelope) · [2 Ids](#2-ids-and-namespacing) · [3 Dep
 - **Scalar** = boolean | number | string ≤ 280.
 - **No official content.** Packs in this repo never contain Enemy Spotted Studios card stats, rules text or art (D3/D15).
 
+## Format versions
+
+| `formatVersion` | Status | Adds |
+|---|---|---|
+| `1` | loads unchanged | the G1 format |
+| `2` | **current; write this** | target filters `{from, where}`, target `team`, conditions `hasTag` / `teamMissions` / `factionIs`, effect `forEachTeam`, `rollTable.byFaction`, removal reason `destroyed`, trigger `onPromotion` + `filter.rank`, campaign `customMission` and `factions` |
+
+v2 is a strict superset: no migration. A pack declaring `formatVersion: 1` that uses any v2 feature is rejected (`schema`, message "… is a v2 feature; set formatVersion: 2").
+
 ## 1. Envelope
 
 ```json
 {
   "$schema": "https://…/docs/schema/pack.schema.json",
   "format": "blkout-pack",
-  "formatVersion": 1,
+  "formatVersion": 2,
   "id": "my-pack",
   "version": "1.0.0",
   "title": "My Pack",
@@ -39,7 +48,7 @@ Contents: [1 Envelope](#1-envelope) · [2 Ids](#2-ids-and-namespacing) · [3 Dep
 |---|---|:-:|---|
 | `$schema` | string ≤512 |  |  |
 | `format` | `"blkout-pack"` | ✓ |  |
-| `formatVersion` | `1` | ✓ |  |
+| `formatVersion` | `1` \| `2` | ✓ |  |
 | `id` | slug | ✓ |  |
 | `version` | semver | ✓ |  |
 | `title` | string ≤80 | ✓ |  |
@@ -359,6 +368,8 @@ Seven primitives (DESIGN §6): **Timeline**, **Roster**, **Ladder**, **Pool**, *
 | `narratives` | NarrativeBlock[] (≤500) |  | `[]` |
 | `triggers` | Trigger[] (≤200) |  | `[]` |
 | `assets` | `{key, name, text?}`[] (≤64) |  | `[]` |
+| `customMission` | `{aar: {fields: AarField[] ≤24}, outcomes?: MissionOutcome[] 1..8}` |  | v2; template for player-added missions |
+| `factions` | `{key, name, text? ≤280, tags}`[] (≤16) |  | v2; player picks one at start |
 | `tags` | slug[] (≤32) |  | `[]` |
 
 | Persona | Type | Req | Default |
@@ -368,6 +379,11 @@ Seven primitives (DESIGN §6): **Timeline**, **Roster**, **Ladder**, **Pool**, *
 | `callsign` | string ≤80 |  |  |
 | `role` | string ≤280 |  |  |
 | `text` | string ≤280 |  | voice notes |
+
+### Factions and custom missions (v2)
+
+- **`factions`**: campaign-local choices (keys, not faction refs). When present, starting the campaign requires one; it is readable as `factionIs`, `rollTable.byFaction` and `{{campaign.faction}}` / `{{campaign.factionName}}`.
+- **`customMission`**: missions the player adds get `aar.fields` from the template and its `outcomes` (the player's reward effects are appended to the outcome keyed `success`, else the first). Without `outcomes`: `success` (rewards) / `failure`. Without `customMission`: no AAR fields (v1 behaviour).
 
 ### Roster
 
@@ -528,8 +544,8 @@ The engine always records outcome, notes, and per operator `participated` (defau
 | Trigger | Type | Req | Default |
 |---|---|:-:|---|
 | `key` | slug | ✓ |  |
-| `on` | `onCampaignStart` \| `onStageStart` \| `onMissionStart` \| `onMissionResolved` \| `onStageEnd` \| `onTrackMilestone` \| `onOperatorKia` | ✓ |  |
-| `filter` | `{stage?, mission?, track?, milestone?}` |  | narrows the event |
+| `on` | `onCampaignStart` \| `onStageStart` \| `onMissionStart` \| `onMissionResolved` \| `onStageEnd` \| `onTrackMilestone` \| `onOperatorKia` \| `onPromotion` (v2) | ✓ |  |
+| `filter` | `{stage?, mission?, track?, milestone?, rank?}` |  | narrows the event; `rank` (v2) only on `onPromotion` |
 | `when` | Condition |  |  |
 | `once` | bool |  | `false` |
 | `effects` | Effect[] (≤64) |  | `[]` |
@@ -539,7 +555,9 @@ The engine always records outcome, notes, and per operator `participated` (defau
 
 Closed DSLs: every op is data. Unknown ops are schema errors. Full shapes: `$defs.Effect` / `$defs.Condition` in the JSON Schema.
 
-**Target** (operator selector): `participants` (operators marked participated in the AAR being resolved) · `roster` (all active operators) · `subject` (the operator in context: per-operator AAR field, operator ladder `onEnter`/transition, `onOperatorKia`, manual adjustment subject) · `operator:<key>` · `team:<key>`.
+**Target** (operator selector): `participants` (operators marked participated in the AAR being resolved) · `roster` (all active operators) · `subject` (the operator in context: per-operator AAR field, operator ladder `onEnter`/transition, `onOperatorKia`, `onPromotion`, manual adjustment subject) · `team` (v2: the `forEachTeam` loop team, else the subject's team) · `operator:<key>` · `team:<key>`.
+
+**Target filter** (v2): anywhere a target is accepted, `{ "from": Target, "where": Condition }` keeps the operators of `from` for which `where` is true, evaluated with `subject` = each operator. Example: `{"from": "participants", "where": {"op": "not", "cond": {"op": "hasTag", "target": "subject", "tags": ["golem"]}}}`.
 
 | Effect `op` | Fields |
 |---|---|
@@ -551,15 +569,16 @@ Closed DSLs: every op is data. Unknown ops are schema errors. Full shapes: `$def
 | `adjustTrack` | `track`, `amount` (clamped; fires milestones crossed upward) |
 | `setFlag` | `flag`, `value` Scalar = `true` |
 | `addOperator` | `team`, `operator`: OperatorSeed (team full/missing → player choice) |
-| `removeOperator` | `target`, `reason`: `kia`\|`mia`\|`captured`\|`retired`\|`transferred` |
+| `removeOperator` | `target`, `reason`: `kia`\|`mia`\|`captured`\|`retired`\|`transferred`\|`destroyed` (v2; only `kia` fires `onOperatorKia`) |
 | `addTeam` | `team`: TeamDef |
 | `unlockMission` | `mission`, `stage?` (pins the mission to that stage) |
 | `lockMission` | `mission` (only affects `available` missions) |
-| `rollTable` | `table` ref, `times` int 1..5 = 1 |
+| `rollTable` | `table` ref (default), `times` int 1..5 = 1, `byFaction?` (v2): `{faction: key, table: ref}`[] ≤16, used instead of `table` for that campaign faction |
 | `showNarrative` | `narrative`: NarrativeRef |
 | `grantAsset` | `asset`, `team?` (absent = campaign-level), `count` int 1..99 = 1 |
 | `promote` | `target`, `rank?` (absent = next rank) |
 | `if` | `cond`: Condition, `then`: Effect[], `else?`: Effect[] |
+| `forEachTeam` | v2: `where?`: Condition, `effects`: Effect[]; once per team with active operators (roster order), with that team as the scope team |
 
 | Condition `op` | Fields |
 |---|---|
@@ -571,6 +590,9 @@ Closed DSLs: every op is data. Unknown ops are schema errors. Full shapes: `$def
 | `operatorStat` | `target`, `stat`, `cmp`: `gte`\|`lte`\|`eq` = `gte`, `value`, `match` = `any` |
 | `stageIs` | `stage` |
 | `roll` | `sides` int 2..100, `gte` int 1..100 (seeded; passes when 1d`sides` ≥ `gte`) |
+| `hasTag` | v2: `target`, `tags`: key[] 1..16 (operator matches when it has any), `match` = `any` |
+| `teamMissions` | v2: `cmp` = `gte`, `value` int 0..99; missions the scope team took part in during the current stage (counted before the resolving AAR's effects) |
+| `factionIs` | v2: `factions`: key[] 1..16 |
 | `all` / `any` | `of`: Condition[] 1..64 |
 | `not` | `cond`: Condition |
 
@@ -578,16 +600,18 @@ Closed DSLs: every op is data. Unknown ops are schema errors. Full shapes: `$def
 
 ## 8. Runtime semantics
 
-- **Ladder targets.** `target` absent → `subject` when bound, else `participants`. Team-scope ladders resolve operator targets to their teams (with no target and nobody selected: all teams). Campaign-scope ladders ignore `target`. `onEnter` runs on *every* entry, including `stepLadder` moves.
+- **Ladder targets.** `target` absent → the loop team inside `forEachTeam` (team-scope ladders), else `subject` when bound, else `participants`. Team-scope ladders resolve operator targets to their teams (with no target and nobody selected: all teams).
+- **Scope team** (v2) = the `forEachTeam` loop team, else the subject's team. It drives target `team`, `teamMissions`, and team-ladder defaults. `forEachTeam` visits a snapshot of teams; teams added inside are not visited. Campaign-scope ladders ignore `target`. `onEnter` runs on *every* entry, including `stepLadder` moves.
 - **AAR resolution order:** engine stats (`missions`, `kills`) → outcome `effects` → mission-scope fields (declaration order) → for each participant, operator-scope fields (declaration order; stops if the operator is removed) → outcome narrative → `debrief` → `onMissionResolved` triggers.
 - **Triggers** fire in declaration order; pool `refresh` rules for the event run first. `narrative` renders before `effects`.
 - **Stage completion** is sticky: all non-optional slots resolved, or `endWhen` true. A stage with no slots completes on entry. The player then advances; advancing past the last stage completes the campaign.
 - **Slots.** A slotted mission belongs to the **first** stage whose slot lists it; resolving any candidate closes the slot. Unslotted missions float (available in any stage) unless `unlockMission.stage` pins them. `repeatable` missions stay beginnable after resolution.
-- **Custom missions** (player-added) get outcomes `success` (with the player's reward effects) and `failure`, and no AAR fields.
+- **Custom missions** (player-added) use the campaign `customMission` template (v2); without one they get `success` (with the player's reward effects) / `failure` and no AAR fields.
+- **Promotion** (v2): any upward rank change (auto-promotion by `xp` or `promote`) fires `onPromotion` with `subject` = the operator.
 - **Milestones** fire when a track crosses `at` upward, lowest first; downward moves never fire.
 - **Caps:** 32 nested effect levels, 5 000 effects per event; exceeding either halts that event with an error entry.
 - **Content filter.** Narrative blocks, table entries and whole tables carry `tags`. Excluded narrative becomes a "withheld" placeholder; excluded table entries are not rolled.
-- **Template variables** (`{{var}}`): `operator.{key,name,callsign,rank,team,unit,status}`, `operator.<stat>`, `operator.field.<key>`, `operator.ladder.<key>` · `team.{key,name,callsign,size}`, `team.ladder.<key>`, `team.asset.<key>` · `mission.{key,name,outcome,status}` · `campaign.{name,stage,stageKey}`, `campaign.ladder.<key>`, `campaign.asset.<key>`, `campaign.flag.<key>` · `track.<key>`, `track.<key>.{name,max}` · `pool.<key>`, `pool.<key>.name` · `persona.<key>`, `persona.<key>.{name,callsign,role}`. Unknown or out-of-scope variables render as `[?var]`.
+- **Template variables** (`{{var}}`): `operator.{key,name,callsign,rank,team,unit,status}`, `operator.<stat>`, `operator.field.<key>`, `operator.ladder.<key>` · `team.{key,name,callsign,size}`, `team.ladder.<key>`, `team.asset.<key>` · `mission.{key,name,outcome,status}` · `campaign.{name,stage,stageKey,faction,factionName}`, `campaign.ladder.<key>`, `campaign.asset.<key>`, `campaign.flag.<key>` · `track.<key>`, `track.<key>.{name,max}` · `pool.<key>`, `pool.<key>.name` · `persona.<key>`, `persona.<key>.{name,callsign,role}`. Unknown or out-of-scope variables render as `[?var]`.
 
 ## 9. Validation errors
 
@@ -596,7 +620,7 @@ Every error is `{ code, path, message, packId? }`; `path` is an RFC 6901 JSON po
 | Code | Means | Fix |
 |---|---|---|
 | `json_syntax` | Not valid JSON. | Fix trailing commas, quotes, comments (JSON has none). |
-| `schema` | Shape violation: unknown property, wrong type, missing required field, bad slug, limit exceeded, duplicate `key`/`id` in a list, `choice` without `options`, ladder `initial`/transition state unknown, track `initial`/milestone outside range, malformed `{{var}}`. | Read `message` at `path`; compare with the tables above. |
+| `schema` | Shape violation: v2 feature in a `formatVersion: 1` pack, unknown property, wrong type, missing required field, bad slug, limit exceeded, duplicate `key`/`id` in a list, `choice` without `options`, ladder `initial`/transition state unknown, track `initial`/milestone outside range, malformed `{{var}}`. | Read `message` at `path`; compare with the tables above. |
 | `duplicate_pack` | Same pack `id` supplied twice. | Load one copy, or rename. |
 | `missing_dependency` | A `requires` entry isn't loaded. | Load that pack or remove the requirement. |
 | `dependency_version` | Loaded version outside `range`. | Update the dependency or widen the range. |
@@ -607,5 +631,5 @@ Every error is `{ code, path, message, packId? }`; `path` is an RFC 6901 JSON po
 | `errata_invalid` | Target + `set` fails the kind schema. | Fix the patched fields (path is under `/set`). |
 | `duplicate_id` | The same qualified id registered twice for a kind. | Rename one item. |
 | `unresolved_ref` | A ref names no item of the expected kind. | Check spelling, kind, and pack prefix. |
-| `unresolved_key` | Campaign key not defined: mission, stage, ladder or ladder state, pool, track, milestone, stat, persona (`speaker`), narrative key, rank, team, operator, asset, mission outcome. Shared tables are checked in the context of every campaign that rolls them. | Define the key, or fix the typo. Teams/operators may also be introduced by `addTeam`/`addOperator`. |
-| `invalid_value` | `trackGte.value` outside the track's range; `perUnit` on a non-number field; `onValue.value` of the wrong type or not an option. | Align values with the field/track definition. |
+| `unresolved_key` | Campaign key not defined: mission, stage, ladder or ladder state, pool, track, milestone, stat, persona (`speaker`), narrative key, rank, team, operator, asset, mission outcome, faction (`factionIs`, `byFaction`). Shared tables are checked in the context of every campaign that rolls them. | Define the key, or fix the typo. Teams/operators may also be introduced by `addTeam`/`addOperator`. |
+| `invalid_value` | `trackGte.value` outside the track's range; `perUnit` on a non-number field; `onValue.value` of the wrong type or not an option (mission and `customMission` fields); `filter.rank` on a trigger other than `onPromotion`. | Align values with the field/track definition. |

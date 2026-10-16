@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { createCampaignEngine, replayCampaign, type AarInput, type CampaignEngine } from '$lib/domain/campaign';
+import { createCampaignEngine, replayCampaign, type AarInput, type CampaignEngine, type StartCampaignInput } from '$lib/domain/campaign';
+import type { ContentLookup } from '$lib/domain/content';
 import { loadPacks } from './loader';
 import { valueOf } from './loader/test-helpers';
 
@@ -23,11 +24,11 @@ describe('bundled packs', () => {
 describe('GEMINI / COLD IRON', () => {
   const { registry } = valueOf(loadPacks([gemini]));
   const C = 'blackfall-gemini:cold-iron';
-  const TEAMS = [{ key: 'revenants' }, { key: 'pale-horse' }, { key: 'ironclad' }];
+  const TEAMS: StartCampaignInput['teams'] = [{ key: 'revenants' }, { key: 'pale-horse' }, { key: 'ironclad' }];
 
-  const begin = (seed = 1): CampaignEngine => {
-    const e = createCampaignEngine(registry);
-    const r = e.start({ campaign: C, seed, packs: { 'blackfall-gemini': '1.0.0' }, excludedTags: [], teams: TEAMS });
+  const begin = (seed = 1, opts: { teams?: StartCampaignInput['teams']; faction?: string; content?: ContentLookup } = {}): CampaignEngine => {
+    const e = createCampaignEngine(opts.content ?? registry);
+    const r = e.start({ campaign: C, seed, faction: opts.faction ?? 'rfa', packs: { 'blackfall-gemini': '1.1.0' }, excludedTags: [], teams: opts.teams ?? TEAMS });
     expect(r.ok, JSON.stringify(r)).toBe(true);
     return e;
   };
@@ -43,6 +44,9 @@ describe('GEMINI / COLD IRON', () => {
   const team = (e: CampaignEngine, k: string) => e.state.teams[k]!.ladders['readiness'];
   const op = (e: CampaignEngine, k: string) => e.state.operators[k]!;
   const feedHas = (e: CampaignEngine, title: string) => e.state.feed.some((f) => f.kind === 'narrative' && f.title === title);
+  const tableRolled = (e: CampaignEngine, table: string) => e.state.feed.some((f) => f.source.type === 'table' && f.source.key === `blackfall-gemini:${table}`);
+  const tasking = (e: CampaignEngine, operators: AarInput['operators'], outcome = 'success') =>
+    aar(e, { mission: 'tasking', outcome, fields: { 'mission-type': 'void-clearance' }, operators });
 
   it('starts in Window 1 with the documented tracks and roster', () => {
     const e = begin();
@@ -155,8 +159,9 @@ describe('GEMINI / COLD IRON', () => {
     expect(op(e, 'acheron').removal?.reason).toBe('kia');
     expect(e.state.pools['butchers-bill']).toBe(1);
     expect(e.state.feed.some((f) => f.kind === 'filtered')).toBe(true); // KIA notice withheld
-    expect(op(e, 'golem-7').removal?.reason).toBe('retired');
+    expect(op(e, 'golem-7').removal?.reason).toBe('destroyed');
     expect(e.state.pools['butchers-bill']).toBe(1); // Golems are not KIA
+    expect(team(e, 'revenants')).toBe('red'); // KIA / critical stand the team down
     expect(op(e, 'voss').stats['penalties']).toBe(1);
     expect(op(e, 'voss').ladders['critical']).toBe('critical');
     expect(track(e, 'stability')).toBe(4);
@@ -190,7 +195,118 @@ describe('GEMINI / COLD IRON', () => {
     expect(e.state.missions['cold-trace']!.status).toBe('available');
     expect(op(e, 'skade').stats['xp']).toBe(35); // 2 (TRIPWIRE) + 11 × (deployed + success + kill)
     expect(op(e, 'skade').rank).toBe('tier-3'); // ≥ 33
+    expect(feedHas(e, 'Performance Review')).toBe(true); // onPromotion → advancement rolls
+    for (const t of [1, 2, 3]) expect(tableRolled(e, `advancement-tier-${t}`)).toBe(true);
     expect(e.state.feed.some((f) => f.kind === 'warning' || f.kind === 'error')).toBe(false);
     expect(e.state.feed.some((f) => f.text.includes('[?'))).toBe(false);
+  });
+
+  it('kill teams hold up to three operators', () => {
+    const e = begin(1, { teams: [{ key: 'revenants', recruits: [{ key: 'kade', name: 'Mira Kade', callsign: 'HALYARD', fields: { grade: 'Sgt.' } }] }, { key: 'pale-horse' }, { key: 'ironclad' }] });
+    expect(e.state.teams['revenants']!.operators).toEqual(['acheron', 'voss', 'kade']);
+    const four = createCampaignEngine(registry).start({
+      campaign: C,
+      seed: 1,
+      faction: 'rfa',
+      teams: [{ key: 'revenants', recruits: [{ name: 'A' }, { name: 'B' }] }, { key: 'pale-horse' }, { key: 'ironclad' }],
+    });
+    expect(four.ok).toBe(false);
+  });
+
+  describe('faction reinforcement tables', () => {
+    const toWindow5 = (e: CampaignEngine) => {
+      aar(e, { mission: 'first-light', outcome: 'success', operators: { acheron: {} } });
+      aar(e, { mission: 'tripwire', outcome: 'success', operators: { skade: {} } });
+      for (let w = 2; w <= 5; w++) advance(e); // review rolls at the end of Window 4
+      expect(feedHas(e, 'Personnel Review')).toBe(true);
+    };
+
+    it('RFA rolls the RFA table', () => {
+      const e = begin(3);
+      expect(e.state.faction).toBe('rfa');
+      toWindow5(e);
+      expect(tableRolled(e, 'rfa-reinforcements')).toBe(true);
+      expect(tableRolled(e, 'standard-reinforcements')).toBe(false);
+    });
+
+    it('any other faction falls back to the standard table', () => {
+      // Test-only variant: a second playable faction with no override.
+      const variant = structuredClone(gemini) as { content: { campaigns: { factions: unknown[] }[] } };
+      variant.content.campaigns[0]!.factions.push({ key: 'neutral', name: 'Neutral (test)' });
+      const e = begin(3, { faction: 'neutral', content: valueOf(loadPacks([variant])).registry });
+      toWindow5(e);
+      expect(tableRolled(e, 'standard-reinforcements')).toBe(true);
+      expect(tableRolled(e, 'rfa-reinforcements')).toBe(false);
+    });
+  });
+
+  it('TRIPWIRE failure costs 1 from Stability gains for the next window only', () => {
+    const e = begin();
+    aar(e, { mission: 'tripwire', outcome: 'failure', operators: { skade: {} } });
+    expect(e.state.flags['ied-campaign']).toBe(true);
+    let before = track(e, 'stability');
+    aar(e, { mission: 'first-light', outcome: 'success', operators: { acheron: {} } });
+    expect(track(e, 'stability') - before).toBe(1); // not active in the failure window
+
+    advance(e); // Window 2: penalty active
+    expect(e.state.flags['ied-penalty']).toBe(true);
+    expect(feedHas(e, 'Sector Confidence')).toBe(true);
+    before = track(e, 'stability');
+    tasking(e, { skade: {} }, 'enhanced');
+    expect(track(e, 'stability') - before).toBe(1); // +2 − 1
+    before = track(e, 'stability');
+    tasking(e, { voss: {} }, 'failure');
+    expect(track(e, 'stability') - before).toBe(-1); // losses unaffected
+
+    advance(e); // Window 3: penalty over
+    expect(e.state.flags['ied-penalty']).toBe(false);
+    before = track(e, 'stability');
+    tasking(e, { skade: {} }, 'enhanced');
+    expect(track(e, 'stability') - before).toBe(2);
+  });
+
+  describe('automatic readiness', () => {
+    it('a third tasking in a window sets RED (from Window 2)', () => {
+      const e = begin();
+      aar(e, { mission: 'first-light', outcome: 'success', operators: { acheron: {} } });
+      aar(e, { mission: 'tripwire', outcome: 'success', operators: { voss: {} } });
+      aar(e, { mission: 'pale-signal', outcome: 'success', fields: { intel: 2 }, operators: { acheron: {} } });
+      expect(team(e, 'revenants')).toBe('amber'); // Window 1: no RED from mission count (WARNORD)
+      advance(e);
+      expect(team(e, 'revenants')).toBe('green');
+      tasking(e, { acheron: {} });
+      expect(team(e, 'revenants')).toBe('amber');
+      tasking(e, { voss: {} });
+      expect(team(e, 'revenants')).toBe('amber');
+      tasking(e, { acheron: {} });
+      expect([team(e, 'revenants'), team(e, 'pale-horse')]).toEqual(['red', 'green']);
+      advance(e);
+      expect(team(e, 'revenants')).toBe('green');
+    });
+
+    it('a Serious casualty sets RED, including in Window 1', () => {
+      const e = begin();
+      aar(e, { mission: 'first-light', outcome: 'success', operators: { acheron: {}, voss: { fields: { casualty: 'serious' } } } });
+      expect([team(e, 'revenants'), team(e, 'pale-horse')]).toEqual(['red', 'green']);
+      aar(e, { mission: 'tripwire', outcome: 'success', operators: { skade: {}, adeyemi: { fields: { casualty: 'light' } } } });
+      expect(team(e, 'pale-horse')).toBe('amber'); // light wounds don't
+      advance(e);
+      expect(team(e, 'revenants')).toBe('green');
+      expect(op(e, 'voss').ladders['casualty']).toBe('light'); // serious: two windows
+    });
+  });
+
+  it('custom missions carry the full AAR (casualty, kills, XP)', () => {
+    const e = begin();
+    const add = e.dispatch({ type: 'addCustomMission', mission: { name: 'Deck 61 Breach', rewards: [{ op: 'grantAsset', asset: 'golem-upgrade', team: 'ironclad' }] } });
+    expect(add.ok, JSON.stringify(add)).toBe(true);
+    const key = Object.keys(e.state.customMissions)[0]!;
+    aar(e, { mission: key, outcome: 'success', fields: { intel: 1 }, operators: { skade: { kills: 2, fields: { casualty: 'shaken' } }, 'golem-7': { fields: { 'golem-damage': 'destroyed' } } } });
+    expect(op(e, 'skade').stats['xp']).toBe(5); // deployed + success + 2 kills + survived casualty
+    expect(op(e, 'skade').ladders['morale']).toBe('shaken');
+    expect(op(e, 'golem-7').removal?.reason).toBe('destroyed');
+    expect(e.state.pools['butchers-bill']).toBe(0);
+    expect(e.state.teams['ironclad']!.assets['golem-upgrade']).toBe(1);
+    expect(track(e, 'intel')).toBe(1);
   });
 });

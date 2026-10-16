@@ -6,7 +6,6 @@ const M = 'monolith';
 
 // ── DSL helpers ─────────────────────────────────────────────────────────
 const tg = (amount, track) => ({ op: 'adjustTrack', track, amount });
-const stab = (n) => tg(n, 'stability');
 const esc = (n) => tg(n, 'escalation');
 const intel = (n) => tg(n, 'intel');
 const flag = (f, value = true) => ({ op: 'setFlag', flag: f, value });
@@ -17,8 +16,14 @@ const not = (cond) => ({ op: 'not', cond });
 const all = (...of) => ({ op: 'all', of });
 const any = (...of) => ({ op: 'any', of });
 const outcomeIs = (...outcomes) => ({ op: 'missionOutcome', outcomes });
-const isUtg = { op: 'operatorStat', target: 'subject', stat: 'drone', cmp: 'eq', value: 0 };
-const isGolem = { op: 'operatorStat', target: 'subject', stat: 'drone', cmp: 'eq', value: 1 };
+// Golems carry tag `golem`: no XP, no casualty table, own status ladder.
+const isGolem = { op: 'hasTag', target: 'subject', tags: ['golem'] };
+const isUtg = not(isGolem);
+const utgSubject = { from: 'subject', where: isUtg };
+// Stability gains are reduced by 1 while the TRIPWIRE failure penalty is active (one window).
+const stab = (n) => (n > 0 ? iff({ op: 'flag', flag: 'ied-penalty' }, [tg(n - 1, 'stability')], [tg(n, 'stability')]) : tg(n, 'stability'));
+// Serious-or-worse casualty puts the operator's kill team at RED for the rest of the window.
+const teamRed = { op: 'setLadder', ladder: 'readiness', target: 'team', state: 'red' };
 const xp = (n = 1) => ({ op: 'addXp', target: 'subject', amount: n });
 const opt = (value, label) => ({ value, label });
 
@@ -47,7 +52,7 @@ const operatorFields = [
     scope: 'operator',
     min: 0,
     help: 'Engine-recorded. +1 XP per confirmed kill (UTG only).',
-    perUnit: [iff(isUtg, [xp(1)])],
+    perUnit: [{ op: 'addXp', target: utgSubject, amount: 1 }],
   },
   {
     key: 'casualty',
@@ -64,23 +69,24 @@ const operatorFields = [
       opt('critical', '3–4 — Critical Wound'),
       opt('kia', '1–2 — KIA'),
     ],
-    help: 'Final result after modifiers (min 1, max 10): failure −1; isolated −1; TCCC +2 (medic +3); Golem cover +1; MEDEVAC (Harp) +1; base medic +2; Unkillable +2. Survivors +1 XP.',
+    help: 'Final result after modifiers (min 1, max 10): failure −1; isolated −1; TCCC +2 (medic +3); Golem cover +1; MEDEVAC (Harp) +1; base medic +2; Unkillable +2. Survivors +1 XP. Serious or worse: team RED.',
     onValue: [
-      { value: 'close-call', effects: [iff(isUtg, [xp(1)])] },
+      { value: 'close-call', effects: [{ op: 'addXp', target: utgSubject, amount: 1 }] },
       { value: 'shaken', effects: [iff(isUtg, [{ op: 'setLadder', ladder: 'morale', target: 'subject', state: 'shaken' }, xp(1)])] },
       { value: 'light', effects: [iff(isUtg, [{ op: 'setLadder', ladder: 'casualty', target: 'subject', state: 'light' }, xp(1)])] },
-      { value: 'serious', effects: [iff(isUtg, [{ op: 'setLadder', ladder: 'casualty', target: 'subject', state: 'serious' }, xp(1)])] },
+      { value: 'serious', effects: [iff(isUtg, [{ op: 'setLadder', ladder: 'casualty', target: 'subject', state: 'serious' }, teamRed, xp(1)])] },
       {
         value: 'critical',
         effects: [
           iff(isUtg, [
             { op: 'setLadder', ladder: 'critical', target: 'subject', state: 'critical' },
+            teamRed,
             { op: 'adjustStat', target: 'subject', stat: 'penalties', amount: 1 },
             xp(1),
           ]),
         ],
       },
-      { value: 'kia', effects: [iff(isUtg, [{ op: 'setLadder', ladder: 'casualty', target: 'subject', state: 'kia' }])] },
+      { value: 'kia', effects: [iff(isUtg, [teamRed, { op: 'setLadder', ladder: 'casualty', target: 'subject', state: 'kia' }])] },
     ],
   },
   {
@@ -554,61 +560,88 @@ for (let w = 2; w <= 12; w++) {
 }
 
 // ── Reinforcements: 1D10 with modifiers, expressed as `when`-gated weight tiers ──
-const BANDS = [
-  ['none', 1, 4],
-  ['grunt', 5, 6],
-  ['specialist', 7, 7],
-  ['golem', 8, 8],
-  ['unit', 9, 9],
-  ['upgrade', 10, 10],
-];
-const weightsFor = (m) => {
+// Each tier = one combined modifier; weights = how many d10 faces land in each band after it.
+const tierWeights = (bands, m) => {
   const w = {};
   for (let r = 1; r <= 10; r++) {
     const v = Math.min(10, Math.max(1, r + m));
-    const band = BANDS.find(([, lo, hi]) => v >= lo && v <= hi)[0];
+    const band = bands.find(([, lo, hi]) => v >= lo && v <= hi)[0];
     w[band] = (w[band] ?? 0) + 1;
   }
   return w;
 };
-const hi = gte('stability', 8);
-const lo = not(gte('stability', 4));
-const bill = { op: 'poolGte', pool: 'butchers-bill', value: 3 };
-const TIERS = [
-  [1, 'p1', all(hi, not(bill))],
-  [0, 'z', any(all(not(hi), gte('stability', 4), not(bill)), all(hi, bill))],
-  [-1, 'm1', all(not(hi), gte('stability', 4), bill)],
-  [-2, 'm2', all(lo, not(bill))],
-  [-3, 'm3', all(lo, bill)],
-];
-const utgRecruit = (card) => ({ fields: { grade: 'Sgt.', card }, tags: ['replacement'] });
-const REINF = {
-  none: ['No reinforcements', [], 'Request for replacement personnel denied. STRATCOM cannot allocate enhancement-pipeline assets at this time.'],
-  grunt: ['Replacement operator', [{ op: 'addOperator', team: 'revenants', operator: utgRecruit('UTG replacement') }], 'One replacement operator released from the enhancement pipeline. Integrate at FOB BULWARK with an understrength kill team.'],
-  specialist: ['Replacement specialist', [{ op: 'addOperator', team: 'pale-horse', operator: utgRecruit('UTG Specialist (replacement)') }], 'One replacement specialist released. Integrate at FOB BULWARK with an understrength kill team.'],
-  golem: ['Golem replacement', [{ op: 'addOperator', team: 'ironclad', operator: { name: 'GOLEM-R', stats: { drone: 1 }, fields: { grade: '', card: 'Golems', role: 'Combat drone' }, tags: ['golem'] } }], 'Replacement Golem allocated to Ironclad.'],
-  unit: [
-    'Full replacement unit',
-    [
-      iff(
-        { op: 'flag', flag: 'kill-team-4' },
-        [{ op: 'addTeam', team: { key: 'kill-team-5', name: 'Kill Team 5', callsign: 'GEMINI 5', text: 'Replacement kill team.', operators: [utgRecruit('UTG replacement'), utgRecruit('UTG replacement')] } }],
-        [{ op: 'addTeam', team: { key: 'kill-team-4', name: 'Kill Team 4', callsign: 'GEMINI 4', text: 'Replacement kill team.', operators: [utgRecruit('UTG replacement'), utgRecruit('UTG replacement')] } }, flag('kill-team-4')],
-      ),
-    ],
-    'A complete kill team has been released to GEMINI. Integration at FOB BULWARK. Assign callsigns at your discretion.',
-  ],
-  upgrade: ['Golem upgrade (or a unit, by manual adjustment)', [{ op: 'grantAsset', asset: 'golem-upgrade', team: 'ironclad' }], 'Golem upgrade package authorized for Ironclad. Enhanced weapons and armour on existing frames.'],
+/** Stability 8+ +1, Stability ≤3 −2, Butcher's Bill ≥ billAt −1. */
+const tiers = (billAt) => {
+  const hi = gte('stability', 8);
+  const lo = not(gte('stability', 4));
+  const mid = all(not(hi), gte('stability', 4));
+  const bill = { op: 'poolGte', pool: 'butchers-bill', value: billAt };
+  return [
+    [1, 'p1', all(hi, not(bill))],
+    [0, 'z', any(all(mid, not(bill)), all(hi, bill))],
+    [-1, 'm1', all(mid, bill)],
+    [-2, 'm2', all(lo, not(bill))],
+    [-3, 'm3', all(lo, bill)],
+  ];
 };
-const reinfEntries = [];
-for (const [m, suffix, cond] of TIERS) {
-  const w = weightsFor(m);
-  for (const [band] of BANDS) {
-    if (!w[band]) continue;
-    const [label, effects, text] = REINF[band];
-    reinfEntries.push({ key: `${band}-${suffix}`, weight: w[band], label, narrative: { text, speaker: M, tags: [] }, effects, when: cond });
-  }
-}
+const reinforcementEntries = (bands, results, billAt) =>
+  tiers(billAt).flatMap(([m, suffix, cond]) => {
+    const w = tierWeights(bands, m);
+    return bands
+      .filter(([band]) => w[band])
+      .map(([band]) => {
+        const [label, effects, text] = results[band];
+        return { key: `${band}-${suffix}`, weight: w[band], label, narrative: { text, speaker: M, tags: [] }, effects, when: cond };
+      });
+  });
+const recruit = (card) => ({ fields: { grade: 'Sgt.', card }, tags: ['replacement'] });
+const replacementTeam = (card) => [
+  iff(
+    { op: 'flag', flag: 'kill-team-4' },
+    [{ op: 'addTeam', team: { key: 'kill-team-5', name: 'Kill Team 5', callsign: 'GEMINI 5', text: 'Replacement kill team.', operators: [recruit(card), recruit(card)] } }],
+    [{ op: 'addTeam', team: { key: 'kill-team-4', name: 'Kill Team 4', callsign: 'GEMINI 4', text: 'Replacement kill team.', operators: [recruit(card), recruit(card)] } }, flag('kill-team-4')],
+  ),
+];
+const addTo = (team, card) => ({ op: 'addOperator', team, operator: recruit(card) });
+
+// RFA (UTG pipeline): scarcest table in BLACKFALL.
+const rfaReinforcements = {
+  id: 'rfa-reinforcements',
+  name: 'Reinforcements — UN Raid Force Alpha',
+  text: 'Rolled after every 4th window for RFA. 1D10 bands: 1–4 none, 5–6 operator, 7 specialist, 8 Golem, 9 full unit, 10 Golem upgrade (or a unit). Modifiers (Stability 8+ +1, Stability 3 or less −2, Butcher\'s Bill 3+ −1) select the weight tier.',
+  entries: reinforcementEntries(
+    [['none', 1, 4], ['grunt', 5, 6], ['specialist', 7, 7], ['golem', 8, 8], ['unit', 9, 9], ['upgrade', 10, 10]],
+    {
+      none: ['No reinforcements', [], 'Request for replacement personnel denied. STRATCOM cannot allocate enhancement-pipeline assets at this time.'],
+      grunt: ['Replacement operator', [addTo('revenants', 'UTG replacement')], 'One replacement operator released from the enhancement pipeline. Integrate at FOB BULWARK.'],
+      specialist: ['Replacement specialist', [addTo('pale-horse', 'UTG Specialist (replacement)')], 'One replacement specialist released. Integrate at FOB BULWARK.'],
+      golem: ['Golem replacement', [{ op: 'addOperator', team: 'ironclad', operator: { name: 'GOLEM-R', fields: { grade: '', card: 'Golems', role: 'Combat drone' }, tags: ['golem'] } }], 'Replacement Golem allocated to Ironclad.'],
+      unit: ['Full replacement unit', replacementTeam('UTG replacement'), 'A complete kill team has been released to GEMINI. Integration at FOB BULWARK. Assign callsigns at your discretion.'],
+      upgrade: ['Golem upgrade (or a unit, by manual adjustment)', [{ op: 'grantAsset', asset: 'golem-upgrade', team: 'ironclad' }], 'Golem upgrade package authorized for Ironclad. Enhanced weapons and armour on existing frames.'],
+    },
+    3,
+  ),
+  tags: [],
+};
+
+// Faction-neutral default (standard BLACKFALL table): used when no faction-specific table applies.
+const standardReinforcements = {
+  id: 'standard-reinforcements',
+  name: 'Reinforcements — Standard',
+  text: 'Faction-neutral default (standard BLACKFALL table). 1D10 bands: 1–3 none, 4–6 one replacement, 7–8 two replacements (or one specialist), 9 full unit, 10 full unit or an asset attachment (attachment applied). Modifiers (Stability 8+ +1, Stability 3 or less −2, Butcher\'s Bill 10+ −1) select the weight tier.',
+  entries: reinforcementEntries(
+    [['none', 1, 3], ['grunt', 4, 6], ['pair', 7, 8], ['unit', 9, 9], ['attachment', 10, 10]],
+    {
+      none: ['No reinforcements', [], 'No replacements are available this cycle.'],
+      grunt: ['One replacement', [addTo('revenants', 'Replacement')], 'One replacement assigned. Integrate at FOB BULWARK.'],
+      pair: ['Two replacements', [addTo('revenants', 'Replacement'), addTo('pale-horse', 'Replacement')], 'Two replacements assigned. Integrate at FOB BULWARK.'],
+      unit: ['Full replacement unit', replacementTeam('Replacement'), 'A complete replacement unit has been assigned. Integration at FOB BULWARK.'],
+      attachment: ['Asset attachment (or a unit, by manual adjustment)', [{ op: 'grantAsset', asset: 'asset-attachment' }], 'A vehicle or support asset has been attached to the taskforce.'],
+    },
+    10,
+  ),
+  tags: [],
+};
 
 // ── Tasking generator ───────────────────────────────────────────────────
 const genEntry = (key, weight, label, text, extra = {}) => ({ key, weight, label, narrative: { title: 'Tasking', text, speaker: M, tags: extra.tags ?? [] }, effects: extra.effects ?? [], ...(extra.when ? { when: extra.when } : {}) });
@@ -666,8 +699,8 @@ const events = {
 const adv = (id, name, threshold, items) => ({
   id,
   name,
-  text: `Roll when an operator reaches ${threshold} XP. Record the result in the operator's Advancements field.`,
-  entries: items.map(([key, label, text]) => ({ key, weight: 2, label, narrative: { text } })),
+  text: `Rolled automatically when an operator reaches ${threshold} XP (onPromotion). Record the result in the operator's Advancements field.`,
+  entries: items.map(([key, label, text]) => ({ key, weight: 2, label, narrative: { text: `{{operator.name}}: ${text}` } })),
   tags: ['rules'],
 });
 const advancement = [
@@ -739,7 +772,7 @@ const narratives = [
   N('debrief-standard', '/// MONOLITH COPIES, GEMINI ///\n\nCasualty status required. Report any personnel or equipment degradation for STRATCOM tracking.\n\nMONOLITH out.'),
   N(
     'window-brief',
-    '/// MONOLITH — WARNORD // {{campaign.stage}} ///\nCLASSIFICATION: AUTHORITY — RESTRICTED.\n\nTasking for this window follows. Rotate kill teams; a team tasked twice in one window operates degraded. Rules of engagement as standing.\n\nTaskings outside the standard portfolio will be issued as custom missions.\n\nMONOLITH out.',
+    '/// MONOLITH — WARNORD // {{campaign.stage}} ///\nCLASSIFICATION: AUTHORITY — RESTRICTED. TO: GEMINI ACTUAL, {{campaign.factionName}}.\n\nTasking for this window follows. Rotate kill teams; a team tasked twice in one window operates degraded, and a third tasking stands it down. Rules of engagement as standing.\n\nTaskings outside the standard portfolio will be issued as custom missions.\n\nMONOLITH out.',
     { title: 'WARNORD' },
   ),
   N(
@@ -791,6 +824,8 @@ const narratives = [
     { title: 'Casualty Notification', tags: ['casualty'] },
   ),
   N('reinforcement-review', 'Quarterly personnel review complete. STRATCOM allocation follows.', { title: 'Personnel Review' }),
+  N('ied-penalty', '3rd Battalion losses to the Corridor 7-Delta cell continue. Sector confidence is eroding; expect diminished returns on stabilization this window.', { title: 'Sector Confidence' }),
+  N('promotion-review', '{{operator.field.grade}} {{operator.name}}: performance review complete. Advancement to {{operator.rank}} is approved.', { title: 'Performance Review' }),
 ];
 
 // ── Triggers ────────────────────────────────────────────────────────────
@@ -813,6 +848,14 @@ const triggers = [
       flag('golems-committed', false),
     ],
   },
+  {
+    key: 'ied-penalty-start',
+    on: 'onStageStart',
+    when: { op: 'flag', flag: 'ied-campaign' },
+    narrative: 'ied-penalty',
+    effects: [flag('ied-campaign', false), flag('ied-penalty')],
+  },
+  { key: 'ied-penalty-end', on: 'onStageEnd', when: { op: 'flag', flag: 'ied-penalty' }, effects: [flag('ied-penalty', false)] },
   {
     key: 'operation-boundary',
     on: 'onStageStart',
@@ -839,15 +882,29 @@ const triggers = [
   },
   { key: 'sector-events', on: 'onStageStart', when: notW1, effects: [{ op: 'rollTable', table: 'sector-7-events' }] },
   {
-    key: 'readiness-degrade',
+    // Per team that has deployed this window: 3rd tasking → RED (not in Window 1, per the WARNORD); else GREEN → AMBER.
+    // Serious-or-worse casualties set RED directly in the casualty field.
+    key: 'readiness-update',
     on: 'onMissionResolved',
-    effects: [iff({ op: 'ladderIs', ladder: 'readiness', target: 'participants', states: ['red'], match: 'none' }, [{ op: 'setLadder', ladder: 'readiness', target: 'participants', state: 'amber' }])],
+    effects: [
+      {
+        op: 'forEachTeam',
+        where: { op: 'teamMissions', cmp: 'gte', value: 1 },
+        effects: [
+          iff(
+            all({ op: 'teamMissions', cmp: 'gte', value: 3 }, notW1),
+            [{ op: 'setLadder', ladder: 'readiness', state: 'red' }],
+            [iff({ op: 'ladderIs', ladder: 'readiness', states: ['green'] }, [{ op: 'setLadder', ladder: 'readiness', state: 'amber' }])],
+          ),
+        ],
+      },
+    ],
   },
   {
     key: 'golem-allocation',
     on: 'onMissionResolved',
     effects: [
-      iff({ op: 'operatorStat', target: 'participants', stat: 'drone', cmp: 'eq', value: 1, match: 'any' }, [
+      iff({ op: 'hasTag', target: 'participants', tags: ['golem'] }, [
         iff(all({ op: 'flag', flag: 'golems-committed' }, not(gte('stability', 8))), [{ op: 'showNarrative', narrative: 'golem-over-allocation' }]),
         flag('golems-committed'),
       ]),
@@ -863,12 +920,22 @@ const triggers = [
     effects: [{ op: 'unlockMission', mission: 'pale-signal' }],
   },
   { key: 'kia-inquiry', on: 'onOperatorKia', narrative: 'kia-inquiry', effects: [{ op: 'adjustPool', pool: 'butchers-bill', amount: 1 }] },
+  ...[1, 2, 3].map((t) => ({
+    key: `advancement-${t}`,
+    on: 'onPromotion',
+    filter: { rank: `tier-${t}` },
+    narrative: 'promotion-review',
+    effects: [{ op: 'rollTable', table: `advancement-tier-${t}` }],
+  })),
   {
     key: 'reinforcements',
     on: 'onStageEnd',
     when: { op: 'poolGte', pool: 'reinforcement-clock', value: 4 },
     narrative: 'reinforcement-review',
-    effects: [{ op: 'rollTable', table: 'cold-iron-reinforcements' }, { op: 'adjustPool', pool: 'reinforcement-clock', amount: -4 }],
+    effects: [
+      { op: 'rollTable', table: 'standard-reinforcements', byFaction: [{ faction: 'rfa', table: 'rfa-reinforcements' }] },
+      { op: 'adjustPool', pool: 'reinforcement-clock', amount: -4 },
+    ],
   },
 ];
 
@@ -878,7 +945,7 @@ const campaign = {
   id: 'cold-iron',
   name: 'BLACKFALL — TASKFORCE GEMINI / OPERATION COLD IRON',
   summary:
-    'Solo BLACKFALL campaign for UN Raid Force Alpha aboard The Harp, D+14. Three kill teams (Revenants, Pale Horse, Ironclad Golems) under STRATCOM handler MONOLITH. Tracks: Sector Stability (start 5), Escalation (start 2), Gemini Mystery Intel (0–15; milestones at 5, 10, 15). Readiness degrades within a window and resets between windows. Casualties are harsher than APACHE (Critical Wounds carry permanent penalties) and XP thresholds are 50% higher (8 / 18 / 33). Window 1 is fully authored; Windows 2–12 run on the tasking generator, STRATCOM Taskings and custom missions. Advancement: when an operator reaches a new tier, roll the matching Advancement table. RED readiness (stand down one window after a kill team lost half its strength) is set by manual adjustment.',
+    'Solo BLACKFALL campaign for UN Raid Force Alpha aboard The Harp, D+14. Three kill teams (Revenants, Pale Horse, Ironclad Golems) under STRATCOM handler MONOLITH. Tracks: Sector Stability (start 5), Escalation (start 2), Gemini Mystery Intel (0–15; milestones at 5, 10, 15). Readiness is automatic: AMBER after a team’s first tasking in a window, RED on its third (not Window 1) or after a Serious-or-worse casualty; it resets every window. Casualties are harsher than APACHE (Critical Wounds carry permanent penalties) and XP thresholds are 50% higher (8 / 18 / 33; advancement rolls are automatic). Kill teams hold 2–3 operators. A failed TRIPWIRE costs 1 from every Sector Stability gain during the next window. Window 1 is fully authored; Windows 2–12 run on the tasking generator, STRATCOM Taskings and custom missions. Reinforcements use the RFA table.',
   intro:
     'Kill Squad Gemini is dead.\n\nFour UTG operators and eight Golems answered a Janus Security distress call during the Battle for The Harp. None came back. Combat footage shows three unidentified combatants taking the squad apart. Authority intelligence has not identified them.\n\nSTRATCOM has reconstituted the designation. The new Gemini is drawn from what Raid Force Alpha had left: operators pulled from broken squads, from garrison postings, and from the last cohort out of the enhancement pipeline. They carry the name of the dead.\n\nD+14. The Boone assault has stalled. Boone holds the upper levels and the gun bays; the Authority anchors the lower decks and the elevator stalks. Between them, the middle decks are no-man\'s-land.\n\nGEMINI\'s mandate: go where the line troops cannot, kill what they cannot kill, and hold what cannot be allowed to fall.',
   rulesets: [],
@@ -919,16 +986,15 @@ const campaign = {
         callsign: 'GEMINI 3',
         text: 'Kill Team 3. Golem combat drones: equipment, not personnel. No XP, no advancement.',
         operators: [
-          op('golem-7', 'GOLEM-7', null, { grade: '', card: 'Golems', role: 'Combat drone' }, { stats: { drone: 1 }, tags: ['golem'] }),
-          op('golem-12', 'GOLEM-12', null, { grade: '', card: 'Golems', role: 'Combat drone' }, { stats: { drone: 1 }, tags: ['golem'] }),
+          op('golem-7', 'GOLEM-7', null, { grade: '', card: 'Golems', role: 'Combat drone' }, { tags: ['golem'] }),
+          op('golem-12', 'GOLEM-12', null, { grade: '', card: 'Golems', role: 'Combat drone' }, { tags: ['golem'] }),
         ],
       },
     ],
     pick: { min: 3, max: 3 },
     teamsMax: 5,
-    operatorsPerTeam: { min: 1, max: 2 },
+    operatorsPerTeam: { min: 1, max: 3 },
     stats: [
-      { key: 'drone', name: 'Golem Asset (1 = drone)', initial: 0, min: 0, max: 1 },
       { key: 'penalties', name: 'Permanent Penalties', initial: 0, min: 0, max: 9 },
     ],
     operatorFields: [
@@ -989,7 +1055,7 @@ const campaign = {
       states: [
         { key: 'operational', name: 'Operational' },
         { key: 'damaged', name: 'Damaged', text: '−1 to all stats until repaired. Repair takes one window (immediate at Sector Stability 8+).' },
-        { key: 'destroyed', name: 'Destroyed', text: 'Written off (logged as retired: equipment, not personnel; no inquiry). Replace via reinforcements.', onEnter: [{ op: 'removeOperator', target: 'subject', reason: 'retired' }] },
+        { key: 'destroyed', name: 'Destroyed', text: 'Written off: equipment, not personnel (no inquiry, not on the Butcher\'s Bill). Replace via reinforcements.', onEnter: [{ op: 'removeOperator', target: 'subject', reason: 'destroyed' }] },
       ],
       initial: 'operational',
     },
@@ -999,8 +1065,8 @@ const campaign = {
       scope: 'team',
       states: [
         { key: 'green', name: 'GREEN', text: 'No penalties.' },
-        { key: 'amber', name: 'AMBER', text: '−1 Skill on all checks. Set after a kill team\'s first tasking in a window.' },
-        { key: 'red', name: 'RED', text: 'Stand down this window. If forced: −2 Skill, no Reactions in round 1. Set by manual adjustment at window start when the team lost half or more of its strength last window.' },
+        { key: 'amber', name: 'AMBER', text: '−1 Skill on all checks. Set automatically after a kill team\'s first tasking in a window.' },
+        { key: 'red', name: 'RED', text: 'Stand down for the rest of the window. If forced: −2 Skill, no Reactions in round 1. Set automatically on a team\'s third tasking in a window (not Window 1) or a Serious-or-worse casualty.' },
       ],
       initial: 'green',
     },
@@ -1055,16 +1121,22 @@ const campaign = {
     { key: 'encryption-key', name: 'Partial Encryption Key', text: 'Recovered at PALE SIGNAL.' },
     { key: 'monitored-frequency', name: 'Monitored Frequency', text: 'PALE SIGNAL transmission log and a frequency STRATCOM can monitor.' },
     { key: 'golem-upgrade', name: 'Golem Upgrade Package', text: 'Permanent weapon/armour improvement on one existing Golem.' },
+    { key: 'asset-attachment', name: 'Asset Attachment', text: 'A vehicle or support asset attached to the taskforce (standard reinforcement table).' },
   ],
+  factions: [
+    { key: 'rfa', name: 'UN Raid Force Alpha', text: 'UTG kill squads under Authority STRATCOM. Smallest footprint in BLACKFALL; replacements come only from the enhancement pipeline.', tags: ['utg'] },
+  ],
+  // Player-added missions get the same AAR and outcomes as STRATCOM Taskings (player rewards are added to `success`).
+  customMission: { aar: { fields: [vpField(20), poisField('PoIs secured', 6), reportedField, intelField(), ...operatorFields] }, outcomes: genericOutcomes },
   tags: ['military', 'solo'],
 };
 
 const pack = {
   $schema: '../docs/schema/pack.schema.json',
   format: 'blkout-pack',
-  formatVersion: 1,
+  formatVersion: 2,
   id: 'blackfall-gemini',
-  version: '1.0.0',
+  version: '1.1.0',
   title: 'BLACKFALL — TASKFORCE GEMINI / OPERATION COLD IRON',
   author: 'RJ (BLACKFALL)',
   license: 'Fan-created, non-commercial. BLKOUT and all BLKOUT IP belong to Enemy Spotted Studios; this pack is unofficial and not endorsed by them. Contains no official card stats, rules text or art.',
@@ -1086,7 +1158,7 @@ const pack = {
         text: 'BLACKFALL skill bands: 7 trained regular, 6 SOF-equivalent, 5 exceptional (UTG, Handlers, named characters), 4 legendary (earned in play).',
       },
     ],
-    tables: [generator, events, { id: 'cold-iron-reinforcements', name: 'COLD IRON Reinforcements', text: 'Rolled after every 4th window. 1D10 bands: 1–4 none, 5–6 operator, 7 specialist, 8 Golem, 9 full unit, 10 Golem upgrade (or a unit). Modifiers (Stability 8+ +1, Stability 3 or less −2, Butcher\'s Bill 3+ −1) select the weight tier.', entries: reinfEntries, tags: [] }, names, ...advancement],
+    tables: [generator, events, rfaReinforcements, standardReinforcements, names, ...advancement],
     campaigns: [campaign],
   },
 };

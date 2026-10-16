@@ -19,16 +19,17 @@ If the user later asks for changes, output the **whole** updated pack again (bum
 
 **Validate-before-output checklist**
 
-- [ ] Top level has `format: "blkout-pack"`, `formatVersion: 1`, `id`, `version` (`x.y.z`), `title`, `author`.
+- [ ] Top level has `format: "blkout-pack"`, **`formatVersion: 2`**, `id`, `version` (`x.y.z`), `title`, `author`.
 - [ ] Every `id`, `key`, tag and option `value` is a lowercase slug: `a-z`, `0-9`, single dashes. No spaces, capitals or underscores.
 - [ ] No property exists that isn't in this guide. Objects are strict; one unknown property fails the import.
 - [ ] Each list's `key`s are unique within that list.
-- [ ] Every referenced key exists: missions in slots, narrative keys, `speaker` personas, ladders and their states, tracks, pools, stats, ranks, teams, `operator:<key>` targets, assets, mission outcomes.
+- [ ] Every referenced key exists: missions in slots, narrative keys, `speaker` personas, ladders and their states, tracks, pools, stats, ranks, teams, `operator:<key>` targets, assets, mission outcomes, factions.
 - [ ] Every mission has ≥1 outcome; every table ≥1 entry; every ladder ≥2 states; the timeline ≥1 stage.
 - [ ] Track `initial` and every milestone `at` are within `min..max`; every `trackGte.value` is within that track's range.
 - [ ] AAR `onValue.value` matches the field kind (`true`, not `"true"`) and is one of its options for `choice`; `perUnit` only on `number` fields.
 - [ ] Names ≤ 80 characters. Short texts ≤ 280: objective `text`, ladder state `text`, field `help`, persona `role`/`text`, team `text`, asset `text`, operator field values.
-- [ ] Template variables use only the forms in §6, and the key inside a variable has **no dashes** (`{{track.heat}}` works, `{{track.sector-heat}}` fails).
+- [ ] Template variables use only the forms in §6.
+- [ ] If the campaign defines `factions`, every `byFaction` / `factionIs` names one of them.
 - [ ] No official card stats, rules text or art; no hard dependency unless the user asked for one (§11).
 - [ ] Mature or sensitive text carries a tag (§10).
 - [ ] Narrative text follows the house tone (§9).
@@ -39,7 +40,7 @@ If the user later asks for changes, output the **whole** updated pack again (bum
 
 Before generating, ask the user these questions in **one message**, numbered, short, with your suggested default in brackets. Ask 5–8; skip any the user already answered.
 
-1. **Faction and enemy.** Who does the player command, and who do they fight? Setting and time? [e.g. "a UN kill team aboard a contested orbital elevator, fighting mixed threats"]
+1. **Faction and enemy.** Who does the player command (one faction or a choice), and who do they fight? Setting and time? Should anything differ by faction (reinforcements, events)? [e.g. "a UN kill team aboard a contested orbital elevator, fighting mixed threats"]
 2. **Operators.** How many teams and operators? Names, callsigns, grades, unit card names (display only)? Any lore constraints (for example, an all-female unit)? [2–3 teams of 2–4; I'll name them]
 3. **Tone and limits.** House tone? Any content to avoid entirely, and which mature themes should be taggable (graphic injury, casualty notices)? [restrained military tone; graphic detail tagged]
 4. **Length and structure.** How many stages (windows, weeks, phases), and missions per stage? Fully authored or generic after the first stage? [one authored stage, then generic stages from a mission generator]
@@ -57,7 +58,7 @@ A tiny complete pack that imports as-is. Start from this shape.
 ```json pack
 {
   "format": "blkout-pack",
-  "formatVersion": 1,
+  "formatVersion": 2,
   "id": "night-ledger",
   "version": "1.0.0",
   "title": "Night Ledger",
@@ -145,6 +146,8 @@ Use for random events, reinforcements, mission generators, name lists (entry `la
 Mission = `{ key, name, scenario?, briefing?, debrief?, objectives = [], aar = { fields: [] }, outcomes: [≥1], locked = false, repeatable = false, tags }`. Outcome = `{ key, name, effects = [], narrative? }`. Objective = `{ key, text, primary = false, points? }`.
 Trigger = `{ key, on, filter?: { stage?, mission?, track?, milestone? }, when?, once = false, effects = [], narrative? }`.
 Assets = `[{ key, name, text? }]` on the campaign, granted with `grantAsset`.
+Factions = `[{ key, name, text?, tags }]`: the player picks one at start; read it with `factionIs`, `rollTable.byFaction`, `{{campaign.factionName}}`.
+`customMission: { aar: { fields }, outcomes? }` gives player-added missions your AAR fields and outcomes (their reward effects join the `success` outcome).
 
 **Scenario (optional, inline or pack-level):** `{ name, lore?, tableSize: { width, depth, unit = "in" }, roundLimit (1–12), hardpoints = 0, pois = [{key,name,text?}], forces: { symmetric = true, sides: [{ key, name, text?, behavior = [] }] }, deployment: { text, zones = [{side,text}] }, specialRules = [{key,name,text?}], scoring = [{ key, event, label, points, timing?, max? }], endConditions = [{key,text}], scoreLabel = "VP", campaignReward?, tags }`. A pack-level scenario adds `id`. Describe enemy forces in `sides[].text` by card name only.
 
@@ -152,8 +155,9 @@ Assets = `[{ key, name, text? }]` on the campaign, granted with `grantAsset`.
 
 ## 5. Effect and Condition reference
 
-**Targets** (who an effect touches): `participants` (operators marked as deployed in the AAR being resolved) · `roster` (every active operator) · `subject` (the operator in context: an operator-scope AAR field, an operator ladder's `onEnter`/transition, `onOperatorKia`) · `operator:<key>` · `team:<key>`.
-For ladder ops, a missing `target` means `subject` if one is bound, else `participants`. Team-scope ladders turn operator targets into their teams. Campaign-scope ladders ignore `target`.
+**Targets** (who an effect touches): `participants` (operators marked as deployed in the AAR being resolved) · `roster` (every active operator) · `subject` (the operator in context: an operator-scope AAR field, an operator ladder's `onEnter`/transition, `onOperatorKia`, `onPromotion`) · `team` (the `forEachTeam` loop team, else the subject's team) · `operator:<key>` · `team:<key>`.
+**Filtered target:** `{ "from": <target>, "where": <condition> }` keeps only operators for which `where` holds, tested with `subject` = each operator.
+For ladder ops, a missing `target` means the loop team inside `forEachTeam`, else `subject` if bound, else `participants`. Team-scope ladders turn operator targets into their teams. Campaign-scope ladders ignore `target`.
 
 **Quantifier** `match` on multi-operator conditions: `any` (default), `all` (false when nobody is selected), `none`.
 
@@ -167,15 +171,16 @@ For ladder ops, a missing `target` means `subject` if one is bound, else `partic
 | `adjustTrack` | `{op, track, amount}` |
 | `setFlag` | `{op, flag, value = true}` (value: bool, number or short string) |
 | `addOperator` | `{op, team, operator: OperatorSeed}` (full team → the player chooses where) |
-| `removeOperator` | `{op, target, reason: "kia" | "mia" | "captured" | "retired" | "transferred"}` |
+| `removeOperator` | `{op, target, reason: "kia" \| "mia" \| "captured" \| "retired" \| "transferred" \| "destroyed"}` (only `kia` fires `onOperatorKia`; use `destroyed` for drones/equipment) |
 | `addTeam` | `{op, team: TeamDef}` |
 | `unlockMission` | `{op, mission, stage?}` (`stage` pins it to that stage) |
 | `lockMission` | `{op, mission}` |
-| `rollTable` | `{op, table, times = 1}` (1–5) |
+| `rollTable` | `{op, table, times = 1, byFaction?: [{faction, table}]}` (`table` is the default) |
 | `showNarrative` | `{op, narrative}` (key or inline) |
 | `grantAsset` | `{op, asset, team?, count = 1}` |
 | `promote` | `{op, target, rank?}` (no rank = next rank) |
 | `if` | `{op, cond, then: [], else?: []}` |
+| `forEachTeam` | `{op, where?, effects: []}` (once per team with active operators) |
 
 | Condition | Shape |
 |---|---|
@@ -184,15 +189,18 @@ For ladder ops, a missing `target` means `subject` if one is bound, else `partic
 | `poolGte` | `{op, pool, value}` |
 | `missionOutcome` | `{op, mission?, outcomes: [..]}` (no mission = the one being resolved) |
 | `ladderIs` | `{op, ladder, target?, states: [..], match = "any"}` |
-| `operatorStat` | `{op, target, stat, cmp = "gte" | "lte" | "eq", value, match = "any"}` |
+| `operatorStat` | `{op, target, stat, cmp = "gte" \| "lte" \| "eq", value, match = "any"}` |
 | `stageIs` | `{op, stage}` |
 | `roll` | `{op, sides, gte}` (seeded die; passes when the roll ≥ `gte`) |
+| `hasTag` | `{op, target, tags: [..], match = "any"}` (operator has any of the tags) |
+| `teamMissions` | `{op, cmp = "gte", value}` (missions the scope team ran this stage, including the one resolving) |
+| `factionIs` | `{op, factions: [..]}` |
 | `all` / `any` | `{op, of: [..]}` |
 | `not` | `{op, cond}` |
 
 "Less than" is `not` + `trackGte`. Ranges are `all` of two conditions.
 
-**Triggers** (`on`): `onCampaignStart`, `onStageStart`, `onMissionStart`, `onMissionResolved`, `onStageEnd`, `onTrackMilestone`, `onOperatorKia`. They fire in declaration order; pool `refresh` rules for that event run first; a trigger's `narrative` shows before its effects. `filter` narrows by stage/mission/track/milestone key.
+**Triggers** (`on`): `onCampaignStart`, `onStageStart`, `onMissionStart`, `onMissionResolved`, `onStageEnd`, `onTrackMilestone`, `onOperatorKia`, `onPromotion` (subject = promoted operator; `filter.rank` narrows). They fire in declaration order; pool `refresh` rules for that event run first; a trigger's `narrative` shows before its effects. `filter` narrows by stage/mission/track/milestone key.
 
 **AAR resolution order:** outcome effects → mission-scope fields → each deployed operator's operator-scope fields (in declaration order) → outcome narrative → `debrief` → `onMissionResolved` triggers.
 
@@ -200,14 +208,14 @@ For ladder ops, a missing `target` means `subject` if one is bound, else `partic
 
 ## 6. Template variables
 
-Write `{{var}}` in any narrative `text`. The key inside must contain only letters, digits, `_` and dots, so **name keys you want to print without dashes**.
+Write `{{var}}` in any narrative `text`.
 
 | Root | Forms |
 |---|---|
 | `operator` | `operator.name`, `.callsign`, `.rank`, `.team`, `.status`, `.key`, `.xp`, `.kills`, `.missions`, `.<stat>`, `operator.field.<key>`, `operator.ladder.<key>` (state name). Only where a subject is bound. |
 | `team` | `team.name`, `.callsign`, `.size`, `.key`, `team.ladder.<key>`, `team.asset.<key>` (subject's team, else the first team) |
 | `mission` | `mission.name`, `.outcome`, `.status`, `.key` (in briefings, outcomes, debriefs) |
-| `campaign` | `campaign.name`, `campaign.stage` (stage name), `campaign.stageKey`, `campaign.ladder.<key>`, `campaign.asset.<key>`, `campaign.flag.<key>` |
+| `campaign` | `campaign.name`, `campaign.stage` (stage name), `campaign.stageKey`, `campaign.faction`, `campaign.factionName`, `campaign.ladder.<key>`, `campaign.asset.<key>`, `campaign.flag.<key>` |
 | `track` | `track.<key>` (value), `track.<key>.name`, `track.<key>.max` |
 | `pool` | `pool.<key>`, `pool.<key>.name` |
 | `persona` | `persona.<key>` (callsign or name), `persona.<key>.name`, `.callsign`, `.role` |
@@ -228,7 +236,7 @@ The AAR (after-action report) form is where play results enter the engine. The e
 - **Field order matters:** fields resolve top to bottom. Clear a state before the field that might set it again.
 - Use the **same outcome keys on every mission** (for example `enhanced`, `success`, `partial`, `failure`) so shared XP logic can test `missionOutcome` without naming a mission.
 
-**XP for deployment, success and kills** (GEMINI excerpt; `drone` is a custom stat that keeps drones out of XP):
+**XP for deployment, success and kills** (GEMINI excerpt; operators tagged `golem` are drones and earn no XP, via `hasTag` and a filtered target):
 
 ```json
 [
@@ -236,7 +244,7 @@ The AAR (after-action report) form is where play results enter the engine. The e
     "key": "participated", "label": "Deployed", "kind": "boolean", "scope": "operator",
     "onValue": [{ "value": true, "effects": [
       { "op": "setLadder", "ladder": "morale", "target": "subject", "state": "steady" },
-      { "op": "if", "cond": { "op": "operatorStat", "target": "subject", "stat": "drone", "cmp": "eq", "value": 0 }, "then": [
+      { "op": "if", "cond": { "op": "not", "cond": { "op": "hasTag", "target": "subject", "tags": ["golem"] } }, "then": [
         { "op": "addXp", "target": "subject", "amount": 1 },
         { "op": "if", "cond": { "op": "missionOutcome", "outcomes": ["success", "enhanced"] }, "then": [{ "op": "addXp", "target": "subject", "amount": 1 }] }
       ] }
@@ -244,7 +252,8 @@ The AAR (after-action report) form is where play results enter the engine. The e
   },
   {
     "key": "kills", "label": "Confirmed kills", "kind": "number", "scope": "operator", "min": 0,
-    "perUnit": [{ "op": "addXp", "target": "subject", "amount": 1 }]
+    "perUnit": [{ "op": "addXp", "amount": 1,
+      "target": { "from": "subject", "where": { "op": "not", "cond": { "op": "hasTag", "target": "subject", "tags": ["golem"] } } } }]
   }
 ]
 ```
@@ -283,22 +292,28 @@ Record-only fields (points, PoIs secured) need no effects; the values stay in th
 
 All excerpts come from the reference pack *BLACKFALL — TASKFORCE GEMINI*.
 
-**1. Readiness that degrades within a stage and resets each stage.** Team-scope ladder; a resolved mission marks the deployed teams AMBER; every stage start resets to GREEN.
+**1. Per-team loop: automatic readiness.** Team-scope ladder reset every stage. After each mission, `forEachTeam` visits every team that has deployed this stage: third mission → RED (not in stage `w1`), otherwise GREEN → AMBER. Inside the loop, a team ladder op with no `target` means the loop team. A serious casualty sets RED from the AAR field with `"target": "team"` (the subject's team).
 
 ```json
 {
   "ladder": { "key": "readiness", "name": "Readiness", "scope": "team", "initial": "green", "states": [
     { "key": "green", "name": "GREEN", "text": "No penalties." },
     { "key": "amber", "name": "AMBER", "text": "−1 Skill on all checks." },
-    { "key": "red", "name": "RED", "text": "Stand down this window." }
+    { "key": "red", "name": "RED", "text": "Stand down for the rest of the window." }
   ] },
   "triggers": [
     { "key": "window-reset", "on": "onStageStart", "effects": [{ "op": "setLadder", "ladder": "readiness", "target": "roster", "state": "green" }] },
-    { "key": "readiness-degrade", "on": "onMissionResolved", "effects": [
-      { "op": "if", "cond": { "op": "ladderIs", "ladder": "readiness", "target": "participants", "states": ["red"], "match": "none" },
-        "then": [{ "op": "setLadder", "ladder": "readiness", "target": "participants", "state": "amber" }] }
+    { "key": "readiness-update", "on": "onMissionResolved", "effects": [
+      { "op": "forEachTeam", "where": { "op": "teamMissions", "cmp": "gte", "value": 1 }, "effects": [
+        { "op": "if",
+          "cond": { "op": "all", "of": [{ "op": "teamMissions", "cmp": "gte", "value": 3 }, { "op": "not", "cond": { "op": "stageIs", "stage": "w1" } }] },
+          "then": [{ "op": "setLadder", "ladder": "readiness", "state": "red" }],
+          "else": [{ "op": "if", "cond": { "op": "ladderIs", "ladder": "readiness", "states": ["green"] },
+                     "then": [{ "op": "setLadder", "ladder": "readiness", "state": "amber" }] }] }
+      ] }
     ] }
-  ]
+  ],
+  "casualtyOnValue": { "value": "serious", "effects": [{ "op": "setLadder", "ladder": "readiness", "target": "team", "state": "red" }] }
 }
 ```
 
@@ -329,13 +344,17 @@ Unlocking on mission results instead (bonus mission after two successes):
   "effects": [{ "op": "unlockMission", "mission": "pale-signal" }] }
 ```
 
-**3. A reinforcement table on a clock.** A pool counts stages; a trigger rolls the table every fourth stage. Roll modifiers become weight tiers selected by `when` (one entry per result per tier):
+**3. A faction-specific reinforcement table on a clock.** A pool counts stages; a trigger rolls every fourth stage. `byFaction` swaps in the RFA table when the player's faction is `rfa`; `table` is the faction-neutral default. Roll modifiers become weight tiers selected by `when` (one entry per result per tier):
 
 ```json
 {
   "pool": { "key": "reinforcement-clock", "name": "Windows Since Review", "max": 4, "refresh": [{ "on": "onStageEnd", "mode": "add", "amount": 1 }] },
   "trigger": { "key": "reinforcements", "on": "onStageEnd", "when": { "op": "poolGte", "pool": "reinforcement-clock", "value": 4 },
-    "effects": [{ "op": "rollTable", "table": "cold-iron-reinforcements" }, { "op": "adjustPool", "pool": "reinforcement-clock", "amount": -4 }] },
+    "effects": [
+      { "op": "rollTable", "table": "standard-reinforcements", "byFaction": [{ "faction": "rfa", "table": "rfa-reinforcements" }] },
+      { "op": "adjustPool", "pool": "reinforcement-clock", "amount": -4 }
+    ] },
+  "factions": [{ "key": "rfa", "name": "UN Raid Force Alpha", "tags": ["utg"] }],
   "entry": { "key": "grunt-p1", "weight": 2, "label": "Replacement operator",
     "when": { "op": "trackGte", "track": "stability", "value": 8 },
     "narrative": { "text": "One replacement operator released from the pipeline.", "speaker": "monolith", "tags": [] },
@@ -375,7 +394,7 @@ If the named team is full, the app asks the player which team gets the recruit.
   ] }
 ```
 
-**6. Promotion by XP.** Ranks with `xp` thresholds promote automatically whenever XP is added:
+**6. Promotion by XP, with an automatic advancement roll.** Ranks with `xp` thresholds promote automatically whenever XP is added; `onPromotion` (subject = the promoted operator) rolls that tier's table, whose entries can address `{{operator.name}}`:
 
 ```json
 { "ranks": [
@@ -383,10 +402,10 @@ If the named team is full, the app asks the player which team gets the recruit.
   { "key": "tier-1", "name": "Tier 1", "xp": 8 },
   { "key": "tier-2", "name": "Tier 2", "xp": 18 },
   { "key": "tier-3", "name": "Tier 3 — Named", "xp": 33 }
-] }
+],
+  "trigger": { "key": "advancement-1", "on": "onPromotion", "filter": { "rank": "tier-1" }, "narrative": "promotion-review",
+    "effects": [{ "op": "rollTable", "table": "advancement-tier-1" }] } }
 ```
-
-Pair each tier with a pack-level table (for example "Advancement — Tier 1") that the player rolls from the app when someone ranks up.
 
 **7. Persona-voiced briefings.**
 
@@ -399,7 +418,19 @@ Pair each tier with a pack-level table (for example "Advancement — Tier 1") th
 }
 ```
 
-**Generic later stages.** To keep a campaign playable without new writing: give later stages `"slots": []`, add one floating `"repeatable": true, "locked": true` mission (for example "STRATCOM Tasking") with a mission-type choice field and the shared AAR fields, unlock it at the first generic stage, and roll a mission-generator table at each `onStageStart` (gated by `stageIs`). Players may also add custom missions; those only get `success`/`failure` outcomes and no AAR fields, so keep a generic authored mission for anything that needs casualty rolls.
+**8. Filtered targets.** Act on part of a group without `if` per operator. Destroyed drones leave with reason `destroyed` (no KIA trigger); a check for drones among the deployed:
+
+```json
+{
+  "awardHumans": { "op": "addXp", "amount": 1, "target": { "from": "participants", "where": { "op": "not", "cond": { "op": "hasTag", "target": "subject", "tags": ["golem"] } } } },
+  "golemDestroyedOnEnter": { "op": "removeOperator", "target": "subject", "reason": "destroyed" },
+  "golemsDeployed": { "op": "hasTag", "target": "participants", "tags": ["golem"] }
+}
+```
+
+**9. A one-stage penalty.** Set a "pending" flag on failure; at the next `onStageStart` move it to an "active" flag; clear it at `onStageEnd`. Apply it where the gain happens: `{ "op": "if", "cond": { "op": "flag", "flag": "ied-penalty" }, "then": [{ "op": "adjustTrack", "track": "stability", "amount": 1 }], "else": [{ "op": "adjustTrack", "track": "stability", "amount": 2 }] }`.
+
+**Generic later stages.** To keep a campaign playable without new writing: give later stages `"slots": []`, add one floating `"repeatable": true, "locked": true` mission (for example "STRATCOM Tasking") with a mission-type choice field and the shared AAR fields, unlock it at the first generic stage, and roll a mission-generator table at each `onStageStart` (gated by `stageIs`). Set `customMission` with the same AAR fields and outcomes so player-added missions also take casualty rolls and award XP.
 
 ---
 
@@ -458,15 +489,15 @@ BLKOUT and its cards belong to Enemy Spotted Studios. Packs you write are fan co
 | 3 | **Missing minimums**: mission without `outcomes`, table without `entries`, ladder with one state, empty `stages`. | ≥1 outcome, ≥1 entry, ≥2 states, ≥1 stage. |
 | 4 | **Text too long**: names > 80, short texts > 280. | Keep labels short; put long text in narratives (20 000) or `summary`/`text` fields (4 000). |
 | 5 | **Duplicate keys** in one list. | Unique keys per list (outcomes, fields, states, entries…). |
-| 6 | **Unknown narrative key** in `briefing`/`debrief`/`narrative`. | Define every referenced key in `narratives`, or inline the text. |
-| 7 | **Unknown persona** in `speaker`. | Declare it in `personas`. |
+| 6 | **Unknown narrative key or persona** in `briefing`/`debrief`/`narrative`/`speaker`. | Define every referenced key in `narratives` and `personas`, or inline the text. |
+| 7 | **v2 feature in a v1 pack** ("… is a v2 feature"). | Always emit `formatVersion: 2`. |
 | 8 | **Unknown mission or outcome**: slot lists a missing mission; `missionOutcome` names an outcome the mission lacks. | Cross-check slot lists and outcome keys. |
 | 9 | **Unknown operator/team target**: `operator:reyes` where the seed has no `key`. | Give seeds a `key` when targeting them. |
-| 10 | **Unknown stat**: `operatorStat`/`adjustStat` on an undeclared stat. | Declare it in `roster.stats`; built-ins accepted are `xp` and `kills`. |
+| 10 | **Unknown stat**: `operatorStat`/`adjustStat` on an undeclared stat. | Declare it in `roster.stats`; built-ins are `xp`, `kills`, `missions`. |
 | 11 | **Unknown ladder state** in `setLadder`, `ladderIs`, `initial` or a transition. | Spell states exactly as declared. |
 | 12 | **Value outside a track's range**: `trackGte` 0 on a 1–10 track; milestone `at` 12 on a max-10 track; `initial` outside range. | Keep every value within `min..max`. |
 | 13 | **AAR value mismatch**: `onValue` `"true"` on a boolean, an option not in `options`, `perUnit` on a non-number, `choice` without `options`. | Match kinds exactly. |
-| 14 | **Malformed template**: `{{track.sector-heat}}`, `{{ team name }}`, a stray `{{`. | Dot paths only, no dashes or spaces inside the braces. |
+| 14 | **Malformed template or unknown faction**: `{{ team name }}`, a stray `{{`; `factionIs`/`byFaction` naming a faction not in `factions`. | Dot paths only, no spaces inside the braces; declare factions. |
 | 15 | **Unresolved or undeclared reference**: `rollTable` to a missing table id, or `blkout:…` without `requires`. | Define pack-level tables; declare dependencies, or don't use them. |
 
 ---
@@ -476,9 +507,9 @@ BLKOUT and its cards belong to Enemy Spotted Studios. Packs you write are fan co
 The reference pack ships with the app as `blackfall-gemini.json`. Its structure, for orientation:
 
 - **Timeline:** `w1` (three slots: two primaries and one optional bonus) and `w2`–`w12` with no slots; Operations change at `w5` and `w9`.
-- **Roster:** three teams of two (two UTG kill teams, one Golem team flagged with stat `drone` = 1); `operatorFields` for grade, unit card, role, background, advancements; ranks at 8/18/33 XP; a female name table for replacements.
-- **Ladders:** `casualty` (fit → light → serious → kia; steps back one per stage), `critical` (cleared at Operation boundaries), `morale` (shaken until the next mission), `drone-status`, team `readiness`.
+- **Roster:** one faction (`rfa`); three teams of two (up to three), two UTG kill teams and one Golem team whose operators carry tag `golem`; `operatorFields` for grade, unit card, role, background, advancements; ranks at 8/18/33 XP with automatic advancement rolls; a female name table for replacements; `customMission` with the shared AAR.
+- **Ladders:** `casualty` (fit → light → serious → kia; steps back one per stage), `critical` (cleared at Operation boundaries), `morale` (shaken until the next mission), `drone-status` (destroyed → removed as `destroyed`), team `readiness` (automatic).
 - **Tracks:** `stability` (1–10, start 5), `escalation` (1–10, start 2), `intel` (0–15, milestones 5/10/15).
 - **Pools:** `butchers-bill` (KIA count), `reinforcement-clock`.
-- **Tables:** tasking generator, sector events, reinforcements, names, three advancement tables.
-- **Triggers:** stage reset, Operation boundary, status bands, tasking roll, events roll, readiness degrade, Golem allocation check, bonus-mission unlock, KIA inquiry, reinforcement review.
+- **Tables:** tasking generator, sector events, RFA and standard reinforcements, names, three advancement tables.
+- **Triggers:** stage reset, one-stage TRIPWIRE penalty, Operation boundary, status bands, tasking roll, events roll, readiness loop, Golem allocation check, bonus-mission unlock, KIA inquiry, advancement rolls, reinforcement review.

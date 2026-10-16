@@ -1,9 +1,9 @@
 {
   "$schema": "../docs/schema/pack.schema.json",
   "format": "blkout-pack",
-  "formatVersion": 1,
+  "formatVersion": 2,
   "id": "blackfall-gemini",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "title": "BLACKFALL — TASKFORCE GEMINI / OPERATION COLD IRON",
   "author": "RJ (BLACKFALL)",
   "license": "Fan-created, non-commercial. BLKOUT and all BLKOUT IP belong to Enemy Spotted Studios; this pack is unofficial and not endorsed by them. Contains no official card stats, rules text or art.",
@@ -298,9 +298,25 @@
             },
             "effects": [
               {
-                "op": "adjustTrack",
-                "track": "stability",
-                "amount": 1
+                "op": "if",
+                "cond": {
+                  "op": "flag",
+                  "flag": "ied-penalty"
+                },
+                "then": [
+                  {
+                    "op": "adjustTrack",
+                    "track": "stability",
+                    "amount": 0
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "adjustTrack",
+                    "track": "stability",
+                    "amount": 1
+                  }
+                ]
               }
             ],
             "tags": []
@@ -436,9 +452,9 @@
         "tags": []
       },
       {
-        "id": "cold-iron-reinforcements",
-        "name": "COLD IRON Reinforcements",
-        "text": "Rolled after every 4th window. 1D10 bands: 1–4 none, 5–6 operator, 7 specialist, 8 Golem, 9 full unit, 10 Golem upgrade (or a unit). Modifiers (Stability 8+ +1, Stability 3 or less −2, Butcher's Bill 3+ −1) select the weight tier.",
+        "id": "rfa-reinforcements",
+        "name": "Reinforcements — UN Raid Force Alpha",
+        "text": "Rolled after every 4th window for RFA. 1D10 bands: 1–4 none, 5–6 operator, 7 specialist, 8 Golem, 9 full unit, 10 Golem upgrade (or a unit). Modifiers (Stability 8+ +1, Stability 3 or less −2, Butcher's Bill 3+ −1) select the weight tier.",
         "entries": [
           {
             "key": "none-p1",
@@ -474,7 +490,7 @@
             "weight": 2,
             "label": "Replacement operator",
             "narrative": {
-              "text": "One replacement operator released from the enhancement pipeline. Integrate at FOB BULWARK with an understrength kill team.",
+              "text": "One replacement operator released from the enhancement pipeline. Integrate at FOB BULWARK.",
               "speaker": "monolith",
               "tags": []
             },
@@ -517,7 +533,7 @@
             "weight": 1,
             "label": "Replacement specialist",
             "narrative": {
-              "text": "One replacement specialist released. Integrate at FOB BULWARK with an understrength kill team.",
+              "text": "One replacement specialist released. Integrate at FOB BULWARK.",
               "speaker": "monolith",
               "tags": []
             },
@@ -570,9 +586,6 @@
                 "team": "ironclad",
                 "operator": {
                   "name": "GOLEM-R",
-                  "stats": {
-                    "drone": 1
-                  },
                   "fields": {
                     "grade": "",
                     "card": "Golems",
@@ -759,17 +772,22 @@
                   "op": "all",
                   "of": [
                     {
-                      "op": "not",
-                      "cond": {
-                        "op": "trackGte",
-                        "track": "stability",
-                        "value": 8
-                      }
-                    },
-                    {
-                      "op": "trackGte",
-                      "track": "stability",
-                      "value": 4
+                      "op": "all",
+                      "of": [
+                        {
+                          "op": "not",
+                          "cond": {
+                            "op": "trackGte",
+                            "track": "stability",
+                            "value": 8
+                          }
+                        },
+                        {
+                          "op": "trackGte",
+                          "track": "stability",
+                          "value": 4
+                        }
+                      ]
                     },
                     {
                       "op": "not",
@@ -804,7 +822,7 @@
             "weight": 2,
             "label": "Replacement operator",
             "narrative": {
-              "text": "One replacement operator released from the enhancement pipeline. Integrate at FOB BULWARK with an understrength kill team.",
+              "text": "One replacement operator released from the enhancement pipeline. Integrate at FOB BULWARK.",
               "speaker": "monolith",
               "tags": []
             },
@@ -830,17 +848,22 @@
                   "op": "all",
                   "of": [
                     {
-                      "op": "not",
-                      "cond": {
-                        "op": "trackGte",
-                        "track": "stability",
-                        "value": 8
-                      }
-                    },
-                    {
-                      "op": "trackGte",
-                      "track": "stability",
-                      "value": 4
+                      "op": "all",
+                      "of": [
+                        {
+                          "op": "not",
+                          "cond": {
+                            "op": "trackGte",
+                            "track": "stability",
+                            "value": 8
+                          }
+                        },
+                        {
+                          "op": "trackGte",
+                          "track": "stability",
+                          "value": 4
+                        }
+                      ]
                     },
                     {
                       "op": "not",
@@ -875,7 +898,7 @@
             "weight": 1,
             "label": "Replacement specialist",
             "narrative": {
-              "text": "One replacement specialist released. Integrate at FOB BULWARK with an understrength kill team.",
+              "text": "One replacement specialist released. Integrate at FOB BULWARK.",
               "speaker": "monolith",
               "tags": []
             },
@@ -901,17 +924,22 @@
                   "op": "all",
                   "of": [
                     {
-                      "op": "not",
-                      "cond": {
-                        "op": "trackGte",
-                        "track": "stability",
-                        "value": 8
-                      }
-                    },
-                    {
-                      "op": "trackGte",
-                      "track": "stability",
-                      "value": 4
+                      "op": "all",
+                      "of": [
+                        {
+                          "op": "not",
+                          "cond": {
+                            "op": "trackGte",
+                            "track": "stability",
+                            "value": 8
+                          }
+                        },
+                        {
+                          "op": "trackGte",
+                          "track": "stability",
+                          "value": 4
+                        }
+                      ]
                     },
                     {
                       "op": "not",
@@ -956,9 +984,6 @@
                 "team": "ironclad",
                 "operator": {
                   "name": "GOLEM-R",
-                  "stats": {
-                    "drone": 1
-                  },
                   "fields": {
                     "grade": "",
                     "card": "Golems",
@@ -977,17 +1002,22 @@
                   "op": "all",
                   "of": [
                     {
-                      "op": "not",
-                      "cond": {
-                        "op": "trackGte",
-                        "track": "stability",
-                        "value": 8
-                      }
-                    },
-                    {
-                      "op": "trackGte",
-                      "track": "stability",
-                      "value": 4
+                      "op": "all",
+                      "of": [
+                        {
+                          "op": "not",
+                          "cond": {
+                            "op": "trackGte",
+                            "track": "stability",
+                            "value": 8
+                          }
+                        },
+                        {
+                          "op": "trackGte",
+                          "track": "stability",
+                          "value": 4
+                        }
+                      ]
                     },
                     {
                       "op": "not",
@@ -1109,17 +1139,22 @@
                   "op": "all",
                   "of": [
                     {
-                      "op": "not",
-                      "cond": {
-                        "op": "trackGte",
-                        "track": "stability",
-                        "value": 8
-                      }
-                    },
-                    {
-                      "op": "trackGte",
-                      "track": "stability",
-                      "value": 4
+                      "op": "all",
+                      "of": [
+                        {
+                          "op": "not",
+                          "cond": {
+                            "op": "trackGte",
+                            "track": "stability",
+                            "value": 8
+                          }
+                        },
+                        {
+                          "op": "trackGte",
+                          "track": "stability",
+                          "value": 4
+                        }
+                      ]
                     },
                     {
                       "op": "not",
@@ -1172,17 +1207,22 @@
                   "op": "all",
                   "of": [
                     {
-                      "op": "not",
-                      "cond": {
-                        "op": "trackGte",
-                        "track": "stability",
-                        "value": 8
-                      }
-                    },
-                    {
-                      "op": "trackGte",
-                      "track": "stability",
-                      "value": 4
+                      "op": "all",
+                      "of": [
+                        {
+                          "op": "not",
+                          "cond": {
+                            "op": "trackGte",
+                            "track": "stability",
+                            "value": 8
+                          }
+                        },
+                        {
+                          "op": "trackGte",
+                          "track": "stability",
+                          "value": 4
+                        }
+                      ]
                     },
                     {
                       "op": "not",
@@ -1226,17 +1266,22 @@
               "op": "all",
               "of": [
                 {
-                  "op": "not",
-                  "cond": {
-                    "op": "trackGte",
-                    "track": "stability",
-                    "value": 8
-                  }
-                },
-                {
-                  "op": "trackGte",
-                  "track": "stability",
-                  "value": 4
+                  "op": "all",
+                  "of": [
+                    {
+                      "op": "not",
+                      "cond": {
+                        "op": "trackGte",
+                        "track": "stability",
+                        "value": 8
+                      }
+                    },
+                    {
+                      "op": "trackGte",
+                      "track": "stability",
+                      "value": 4
+                    }
+                  ]
                 },
                 {
                   "op": "poolGte",
@@ -1251,7 +1296,7 @@
             "weight": 2,
             "label": "Replacement operator",
             "narrative": {
-              "text": "One replacement operator released from the enhancement pipeline. Integrate at FOB BULWARK with an understrength kill team.",
+              "text": "One replacement operator released from the enhancement pipeline. Integrate at FOB BULWARK.",
               "speaker": "monolith",
               "tags": []
             },
@@ -1274,17 +1319,22 @@
               "op": "all",
               "of": [
                 {
-                  "op": "not",
-                  "cond": {
-                    "op": "trackGte",
-                    "track": "stability",
-                    "value": 8
-                  }
-                },
-                {
-                  "op": "trackGte",
-                  "track": "stability",
-                  "value": 4
+                  "op": "all",
+                  "of": [
+                    {
+                      "op": "not",
+                      "cond": {
+                        "op": "trackGte",
+                        "track": "stability",
+                        "value": 8
+                      }
+                    },
+                    {
+                      "op": "trackGte",
+                      "track": "stability",
+                      "value": 4
+                    }
+                  ]
                 },
                 {
                   "op": "poolGte",
@@ -1299,7 +1349,7 @@
             "weight": 1,
             "label": "Replacement specialist",
             "narrative": {
-              "text": "One replacement specialist released. Integrate at FOB BULWARK with an understrength kill team.",
+              "text": "One replacement specialist released. Integrate at FOB BULWARK.",
               "speaker": "monolith",
               "tags": []
             },
@@ -1322,17 +1372,22 @@
               "op": "all",
               "of": [
                 {
-                  "op": "not",
-                  "cond": {
-                    "op": "trackGte",
-                    "track": "stability",
-                    "value": 8
-                  }
-                },
-                {
-                  "op": "trackGte",
-                  "track": "stability",
-                  "value": 4
+                  "op": "all",
+                  "of": [
+                    {
+                      "op": "not",
+                      "cond": {
+                        "op": "trackGte",
+                        "track": "stability",
+                        "value": 8
+                      }
+                    },
+                    {
+                      "op": "trackGte",
+                      "track": "stability",
+                      "value": 4
+                    }
+                  ]
                 },
                 {
                   "op": "poolGte",
@@ -1357,9 +1412,6 @@
                 "team": "ironclad",
                 "operator": {
                   "name": "GOLEM-R",
-                  "stats": {
-                    "drone": 1
-                  },
                   "fields": {
                     "grade": "",
                     "card": "Golems",
@@ -1375,17 +1427,22 @@
               "op": "all",
               "of": [
                 {
-                  "op": "not",
-                  "cond": {
-                    "op": "trackGte",
-                    "track": "stability",
-                    "value": 8
-                  }
-                },
-                {
-                  "op": "trackGte",
-                  "track": "stability",
-                  "value": 4
+                  "op": "all",
+                  "of": [
+                    {
+                      "op": "not",
+                      "cond": {
+                        "op": "trackGte",
+                        "track": "stability",
+                        "value": 8
+                      }
+                    },
+                    {
+                      "op": "trackGte",
+                      "track": "stability",
+                      "value": 4
+                    }
+                  ]
                 },
                 {
                   "op": "poolGte",
@@ -1484,17 +1541,22 @@
               "op": "all",
               "of": [
                 {
-                  "op": "not",
-                  "cond": {
-                    "op": "trackGte",
-                    "track": "stability",
-                    "value": 8
-                  }
-                },
-                {
-                  "op": "trackGte",
-                  "track": "stability",
-                  "value": 4
+                  "op": "all",
+                  "of": [
+                    {
+                      "op": "not",
+                      "cond": {
+                        "op": "trackGte",
+                        "track": "stability",
+                        "value": 8
+                      }
+                    },
+                    {
+                      "op": "trackGte",
+                      "track": "stability",
+                      "value": 4
+                    }
+                  ]
                 },
                 {
                   "op": "poolGte",
@@ -1541,7 +1603,7 @@
             "weight": 2,
             "label": "Replacement operator",
             "narrative": {
-              "text": "One replacement operator released from the enhancement pipeline. Integrate at FOB BULWARK with an understrength kill team.",
+              "text": "One replacement operator released from the enhancement pipeline. Integrate at FOB BULWARK.",
               "speaker": "monolith",
               "tags": []
             },
@@ -1587,7 +1649,7 @@
             "weight": 1,
             "label": "Replacement specialist",
             "narrative": {
-              "text": "One replacement specialist released. Integrate at FOB BULWARK with an understrength kill team.",
+              "text": "One replacement specialist released. Integrate at FOB BULWARK.",
               "speaker": "monolith",
               "tags": []
             },
@@ -1643,9 +1705,6 @@
                 "team": "ironclad",
                 "operator": {
                   "name": "GOLEM-R",
-                  "stats": {
-                    "drone": 1
-                  },
                   "fields": {
                     "grade": "",
                     "card": "Golems",
@@ -1713,7 +1772,7 @@
             "weight": 2,
             "label": "Replacement operator",
             "narrative": {
-              "text": "One replacement operator released from the enhancement pipeline. Integrate at FOB BULWARK with an understrength kill team.",
+              "text": "One replacement operator released from the enhancement pipeline. Integrate at FOB BULWARK.",
               "speaker": "monolith",
               "tags": []
             },
@@ -1756,7 +1815,7 @@
             "weight": 1,
             "label": "Replacement specialist",
             "narrative": {
-              "text": "One replacement specialist released. Integrate at FOB BULWARK with an understrength kill team.",
+              "text": "One replacement specialist released. Integrate at FOB BULWARK.",
               "speaker": "monolith",
               "tags": []
             },
@@ -1790,6 +1849,1248 @@
                   "op": "poolGte",
                   "pool": "butchers-bill",
                   "value": 3
+                }
+              ]
+            }
+          }
+        ],
+        "tags": []
+      },
+      {
+        "id": "standard-reinforcements",
+        "name": "Reinforcements — Standard",
+        "text": "Faction-neutral default (standard BLACKFALL table). 1D10 bands: 1–3 none, 4–6 one replacement, 7–8 two replacements (or one specialist), 9 full unit, 10 full unit or an asset attachment (attachment applied). Modifiers (Stability 8+ +1, Stability 3 or less −2, Butcher's Bill 10+ −1) select the weight tier.",
+        "entries": [
+          {
+            "key": "none-p1",
+            "weight": 2,
+            "label": "No reinforcements",
+            "narrative": {
+              "text": "No replacements are available this cycle.",
+              "speaker": "monolith",
+              "tags": []
+            },
+            "effects": [],
+            "when": {
+              "op": "all",
+              "of": [
+                {
+                  "op": "trackGte",
+                  "track": "stability",
+                  "value": 8
+                },
+                {
+                  "op": "not",
+                  "cond": {
+                    "op": "poolGte",
+                    "pool": "butchers-bill",
+                    "value": 10
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "key": "grunt-p1",
+            "weight": 3,
+            "label": "One replacement",
+            "narrative": {
+              "text": "One replacement assigned. Integrate at FOB BULWARK.",
+              "speaker": "monolith",
+              "tags": []
+            },
+            "effects": [
+              {
+                "op": "addOperator",
+                "team": "revenants",
+                "operator": {
+                  "fields": {
+                    "grade": "Sgt.",
+                    "card": "Replacement"
+                  },
+                  "tags": [
+                    "replacement"
+                  ]
+                }
+              }
+            ],
+            "when": {
+              "op": "all",
+              "of": [
+                {
+                  "op": "trackGte",
+                  "track": "stability",
+                  "value": 8
+                },
+                {
+                  "op": "not",
+                  "cond": {
+                    "op": "poolGte",
+                    "pool": "butchers-bill",
+                    "value": 10
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "key": "pair-p1",
+            "weight": 2,
+            "label": "Two replacements",
+            "narrative": {
+              "text": "Two replacements assigned. Integrate at FOB BULWARK.",
+              "speaker": "monolith",
+              "tags": []
+            },
+            "effects": [
+              {
+                "op": "addOperator",
+                "team": "revenants",
+                "operator": {
+                  "fields": {
+                    "grade": "Sgt.",
+                    "card": "Replacement"
+                  },
+                  "tags": [
+                    "replacement"
+                  ]
+                }
+              },
+              {
+                "op": "addOperator",
+                "team": "pale-horse",
+                "operator": {
+                  "fields": {
+                    "grade": "Sgt.",
+                    "card": "Replacement"
+                  },
+                  "tags": [
+                    "replacement"
+                  ]
+                }
+              }
+            ],
+            "when": {
+              "op": "all",
+              "of": [
+                {
+                  "op": "trackGte",
+                  "track": "stability",
+                  "value": 8
+                },
+                {
+                  "op": "not",
+                  "cond": {
+                    "op": "poolGte",
+                    "pool": "butchers-bill",
+                    "value": 10
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "key": "unit-p1",
+            "weight": 1,
+            "label": "Full replacement unit",
+            "narrative": {
+              "text": "A complete replacement unit has been assigned. Integration at FOB BULWARK.",
+              "speaker": "monolith",
+              "tags": []
+            },
+            "effects": [
+              {
+                "op": "if",
+                "cond": {
+                  "op": "flag",
+                  "flag": "kill-team-4"
+                },
+                "then": [
+                  {
+                    "op": "addTeam",
+                    "team": {
+                      "key": "kill-team-5",
+                      "name": "Kill Team 5",
+                      "callsign": "GEMINI 5",
+                      "text": "Replacement kill team.",
+                      "operators": [
+                        {
+                          "fields": {
+                            "grade": "Sgt.",
+                            "card": "Replacement"
+                          },
+                          "tags": [
+                            "replacement"
+                          ]
+                        },
+                        {
+                          "fields": {
+                            "grade": "Sgt.",
+                            "card": "Replacement"
+                          },
+                          "tags": [
+                            "replacement"
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "addTeam",
+                    "team": {
+                      "key": "kill-team-4",
+                      "name": "Kill Team 4",
+                      "callsign": "GEMINI 4",
+                      "text": "Replacement kill team.",
+                      "operators": [
+                        {
+                          "fields": {
+                            "grade": "Sgt.",
+                            "card": "Replacement"
+                          },
+                          "tags": [
+                            "replacement"
+                          ]
+                        },
+                        {
+                          "fields": {
+                            "grade": "Sgt.",
+                            "card": "Replacement"
+                          },
+                          "tags": [
+                            "replacement"
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "setFlag",
+                    "flag": "kill-team-4",
+                    "value": true
+                  }
+                ]
+              }
+            ],
+            "when": {
+              "op": "all",
+              "of": [
+                {
+                  "op": "trackGte",
+                  "track": "stability",
+                  "value": 8
+                },
+                {
+                  "op": "not",
+                  "cond": {
+                    "op": "poolGte",
+                    "pool": "butchers-bill",
+                    "value": 10
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "key": "attachment-p1",
+            "weight": 2,
+            "label": "Asset attachment (or a unit, by manual adjustment)",
+            "narrative": {
+              "text": "A vehicle or support asset has been attached to the taskforce.",
+              "speaker": "monolith",
+              "tags": []
+            },
+            "effects": [
+              {
+                "op": "grantAsset",
+                "asset": "asset-attachment"
+              }
+            ],
+            "when": {
+              "op": "all",
+              "of": [
+                {
+                  "op": "trackGte",
+                  "track": "stability",
+                  "value": 8
+                },
+                {
+                  "op": "not",
+                  "cond": {
+                    "op": "poolGte",
+                    "pool": "butchers-bill",
+                    "value": 10
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "key": "none-z",
+            "weight": 3,
+            "label": "No reinforcements",
+            "narrative": {
+              "text": "No replacements are available this cycle.",
+              "speaker": "monolith",
+              "tags": []
+            },
+            "effects": [],
+            "when": {
+              "op": "any",
+              "of": [
+                {
+                  "op": "all",
+                  "of": [
+                    {
+                      "op": "all",
+                      "of": [
+                        {
+                          "op": "not",
+                          "cond": {
+                            "op": "trackGte",
+                            "track": "stability",
+                            "value": 8
+                          }
+                        },
+                        {
+                          "op": "trackGte",
+                          "track": "stability",
+                          "value": 4
+                        }
+                      ]
+                    },
+                    {
+                      "op": "not",
+                      "cond": {
+                        "op": "poolGte",
+                        "pool": "butchers-bill",
+                        "value": 10
+                      }
+                    }
+                  ]
+                },
+                {
+                  "op": "all",
+                  "of": [
+                    {
+                      "op": "trackGte",
+                      "track": "stability",
+                      "value": 8
+                    },
+                    {
+                      "op": "poolGte",
+                      "pool": "butchers-bill",
+                      "value": 10
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "key": "grunt-z",
+            "weight": 3,
+            "label": "One replacement",
+            "narrative": {
+              "text": "One replacement assigned. Integrate at FOB BULWARK.",
+              "speaker": "monolith",
+              "tags": []
+            },
+            "effects": [
+              {
+                "op": "addOperator",
+                "team": "revenants",
+                "operator": {
+                  "fields": {
+                    "grade": "Sgt.",
+                    "card": "Replacement"
+                  },
+                  "tags": [
+                    "replacement"
+                  ]
+                }
+              }
+            ],
+            "when": {
+              "op": "any",
+              "of": [
+                {
+                  "op": "all",
+                  "of": [
+                    {
+                      "op": "all",
+                      "of": [
+                        {
+                          "op": "not",
+                          "cond": {
+                            "op": "trackGte",
+                            "track": "stability",
+                            "value": 8
+                          }
+                        },
+                        {
+                          "op": "trackGte",
+                          "track": "stability",
+                          "value": 4
+                        }
+                      ]
+                    },
+                    {
+                      "op": "not",
+                      "cond": {
+                        "op": "poolGte",
+                        "pool": "butchers-bill",
+                        "value": 10
+                      }
+                    }
+                  ]
+                },
+                {
+                  "op": "all",
+                  "of": [
+                    {
+                      "op": "trackGte",
+                      "track": "stability",
+                      "value": 8
+                    },
+                    {
+                      "op": "poolGte",
+                      "pool": "butchers-bill",
+                      "value": 10
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "key": "pair-z",
+            "weight": 2,
+            "label": "Two replacements",
+            "narrative": {
+              "text": "Two replacements assigned. Integrate at FOB BULWARK.",
+              "speaker": "monolith",
+              "tags": []
+            },
+            "effects": [
+              {
+                "op": "addOperator",
+                "team": "revenants",
+                "operator": {
+                  "fields": {
+                    "grade": "Sgt.",
+                    "card": "Replacement"
+                  },
+                  "tags": [
+                    "replacement"
+                  ]
+                }
+              },
+              {
+                "op": "addOperator",
+                "team": "pale-horse",
+                "operator": {
+                  "fields": {
+                    "grade": "Sgt.",
+                    "card": "Replacement"
+                  },
+                  "tags": [
+                    "replacement"
+                  ]
+                }
+              }
+            ],
+            "when": {
+              "op": "any",
+              "of": [
+                {
+                  "op": "all",
+                  "of": [
+                    {
+                      "op": "all",
+                      "of": [
+                        {
+                          "op": "not",
+                          "cond": {
+                            "op": "trackGte",
+                            "track": "stability",
+                            "value": 8
+                          }
+                        },
+                        {
+                          "op": "trackGte",
+                          "track": "stability",
+                          "value": 4
+                        }
+                      ]
+                    },
+                    {
+                      "op": "not",
+                      "cond": {
+                        "op": "poolGte",
+                        "pool": "butchers-bill",
+                        "value": 10
+                      }
+                    }
+                  ]
+                },
+                {
+                  "op": "all",
+                  "of": [
+                    {
+                      "op": "trackGte",
+                      "track": "stability",
+                      "value": 8
+                    },
+                    {
+                      "op": "poolGte",
+                      "pool": "butchers-bill",
+                      "value": 10
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "key": "unit-z",
+            "weight": 1,
+            "label": "Full replacement unit",
+            "narrative": {
+              "text": "A complete replacement unit has been assigned. Integration at FOB BULWARK.",
+              "speaker": "monolith",
+              "tags": []
+            },
+            "effects": [
+              {
+                "op": "if",
+                "cond": {
+                  "op": "flag",
+                  "flag": "kill-team-4"
+                },
+                "then": [
+                  {
+                    "op": "addTeam",
+                    "team": {
+                      "key": "kill-team-5",
+                      "name": "Kill Team 5",
+                      "callsign": "GEMINI 5",
+                      "text": "Replacement kill team.",
+                      "operators": [
+                        {
+                          "fields": {
+                            "grade": "Sgt.",
+                            "card": "Replacement"
+                          },
+                          "tags": [
+                            "replacement"
+                          ]
+                        },
+                        {
+                          "fields": {
+                            "grade": "Sgt.",
+                            "card": "Replacement"
+                          },
+                          "tags": [
+                            "replacement"
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "addTeam",
+                    "team": {
+                      "key": "kill-team-4",
+                      "name": "Kill Team 4",
+                      "callsign": "GEMINI 4",
+                      "text": "Replacement kill team.",
+                      "operators": [
+                        {
+                          "fields": {
+                            "grade": "Sgt.",
+                            "card": "Replacement"
+                          },
+                          "tags": [
+                            "replacement"
+                          ]
+                        },
+                        {
+                          "fields": {
+                            "grade": "Sgt.",
+                            "card": "Replacement"
+                          },
+                          "tags": [
+                            "replacement"
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "setFlag",
+                    "flag": "kill-team-4",
+                    "value": true
+                  }
+                ]
+              }
+            ],
+            "when": {
+              "op": "any",
+              "of": [
+                {
+                  "op": "all",
+                  "of": [
+                    {
+                      "op": "all",
+                      "of": [
+                        {
+                          "op": "not",
+                          "cond": {
+                            "op": "trackGte",
+                            "track": "stability",
+                            "value": 8
+                          }
+                        },
+                        {
+                          "op": "trackGte",
+                          "track": "stability",
+                          "value": 4
+                        }
+                      ]
+                    },
+                    {
+                      "op": "not",
+                      "cond": {
+                        "op": "poolGte",
+                        "pool": "butchers-bill",
+                        "value": 10
+                      }
+                    }
+                  ]
+                },
+                {
+                  "op": "all",
+                  "of": [
+                    {
+                      "op": "trackGte",
+                      "track": "stability",
+                      "value": 8
+                    },
+                    {
+                      "op": "poolGte",
+                      "pool": "butchers-bill",
+                      "value": 10
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "key": "attachment-z",
+            "weight": 1,
+            "label": "Asset attachment (or a unit, by manual adjustment)",
+            "narrative": {
+              "text": "A vehicle or support asset has been attached to the taskforce.",
+              "speaker": "monolith",
+              "tags": []
+            },
+            "effects": [
+              {
+                "op": "grantAsset",
+                "asset": "asset-attachment"
+              }
+            ],
+            "when": {
+              "op": "any",
+              "of": [
+                {
+                  "op": "all",
+                  "of": [
+                    {
+                      "op": "all",
+                      "of": [
+                        {
+                          "op": "not",
+                          "cond": {
+                            "op": "trackGte",
+                            "track": "stability",
+                            "value": 8
+                          }
+                        },
+                        {
+                          "op": "trackGte",
+                          "track": "stability",
+                          "value": 4
+                        }
+                      ]
+                    },
+                    {
+                      "op": "not",
+                      "cond": {
+                        "op": "poolGte",
+                        "pool": "butchers-bill",
+                        "value": 10
+                      }
+                    }
+                  ]
+                },
+                {
+                  "op": "all",
+                  "of": [
+                    {
+                      "op": "trackGte",
+                      "track": "stability",
+                      "value": 8
+                    },
+                    {
+                      "op": "poolGte",
+                      "pool": "butchers-bill",
+                      "value": 10
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "key": "none-m1",
+            "weight": 4,
+            "label": "No reinforcements",
+            "narrative": {
+              "text": "No replacements are available this cycle.",
+              "speaker": "monolith",
+              "tags": []
+            },
+            "effects": [],
+            "when": {
+              "op": "all",
+              "of": [
+                {
+                  "op": "all",
+                  "of": [
+                    {
+                      "op": "not",
+                      "cond": {
+                        "op": "trackGte",
+                        "track": "stability",
+                        "value": 8
+                      }
+                    },
+                    {
+                      "op": "trackGte",
+                      "track": "stability",
+                      "value": 4
+                    }
+                  ]
+                },
+                {
+                  "op": "poolGte",
+                  "pool": "butchers-bill",
+                  "value": 10
+                }
+              ]
+            }
+          },
+          {
+            "key": "grunt-m1",
+            "weight": 3,
+            "label": "One replacement",
+            "narrative": {
+              "text": "One replacement assigned. Integrate at FOB BULWARK.",
+              "speaker": "monolith",
+              "tags": []
+            },
+            "effects": [
+              {
+                "op": "addOperator",
+                "team": "revenants",
+                "operator": {
+                  "fields": {
+                    "grade": "Sgt.",
+                    "card": "Replacement"
+                  },
+                  "tags": [
+                    "replacement"
+                  ]
+                }
+              }
+            ],
+            "when": {
+              "op": "all",
+              "of": [
+                {
+                  "op": "all",
+                  "of": [
+                    {
+                      "op": "not",
+                      "cond": {
+                        "op": "trackGte",
+                        "track": "stability",
+                        "value": 8
+                      }
+                    },
+                    {
+                      "op": "trackGte",
+                      "track": "stability",
+                      "value": 4
+                    }
+                  ]
+                },
+                {
+                  "op": "poolGte",
+                  "pool": "butchers-bill",
+                  "value": 10
+                }
+              ]
+            }
+          },
+          {
+            "key": "pair-m1",
+            "weight": 2,
+            "label": "Two replacements",
+            "narrative": {
+              "text": "Two replacements assigned. Integrate at FOB BULWARK.",
+              "speaker": "monolith",
+              "tags": []
+            },
+            "effects": [
+              {
+                "op": "addOperator",
+                "team": "revenants",
+                "operator": {
+                  "fields": {
+                    "grade": "Sgt.",
+                    "card": "Replacement"
+                  },
+                  "tags": [
+                    "replacement"
+                  ]
+                }
+              },
+              {
+                "op": "addOperator",
+                "team": "pale-horse",
+                "operator": {
+                  "fields": {
+                    "grade": "Sgt.",
+                    "card": "Replacement"
+                  },
+                  "tags": [
+                    "replacement"
+                  ]
+                }
+              }
+            ],
+            "when": {
+              "op": "all",
+              "of": [
+                {
+                  "op": "all",
+                  "of": [
+                    {
+                      "op": "not",
+                      "cond": {
+                        "op": "trackGte",
+                        "track": "stability",
+                        "value": 8
+                      }
+                    },
+                    {
+                      "op": "trackGte",
+                      "track": "stability",
+                      "value": 4
+                    }
+                  ]
+                },
+                {
+                  "op": "poolGte",
+                  "pool": "butchers-bill",
+                  "value": 10
+                }
+              ]
+            }
+          },
+          {
+            "key": "unit-m1",
+            "weight": 1,
+            "label": "Full replacement unit",
+            "narrative": {
+              "text": "A complete replacement unit has been assigned. Integration at FOB BULWARK.",
+              "speaker": "monolith",
+              "tags": []
+            },
+            "effects": [
+              {
+                "op": "if",
+                "cond": {
+                  "op": "flag",
+                  "flag": "kill-team-4"
+                },
+                "then": [
+                  {
+                    "op": "addTeam",
+                    "team": {
+                      "key": "kill-team-5",
+                      "name": "Kill Team 5",
+                      "callsign": "GEMINI 5",
+                      "text": "Replacement kill team.",
+                      "operators": [
+                        {
+                          "fields": {
+                            "grade": "Sgt.",
+                            "card": "Replacement"
+                          },
+                          "tags": [
+                            "replacement"
+                          ]
+                        },
+                        {
+                          "fields": {
+                            "grade": "Sgt.",
+                            "card": "Replacement"
+                          },
+                          "tags": [
+                            "replacement"
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "addTeam",
+                    "team": {
+                      "key": "kill-team-4",
+                      "name": "Kill Team 4",
+                      "callsign": "GEMINI 4",
+                      "text": "Replacement kill team.",
+                      "operators": [
+                        {
+                          "fields": {
+                            "grade": "Sgt.",
+                            "card": "Replacement"
+                          },
+                          "tags": [
+                            "replacement"
+                          ]
+                        },
+                        {
+                          "fields": {
+                            "grade": "Sgt.",
+                            "card": "Replacement"
+                          },
+                          "tags": [
+                            "replacement"
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "setFlag",
+                    "flag": "kill-team-4",
+                    "value": true
+                  }
+                ]
+              }
+            ],
+            "when": {
+              "op": "all",
+              "of": [
+                {
+                  "op": "all",
+                  "of": [
+                    {
+                      "op": "not",
+                      "cond": {
+                        "op": "trackGte",
+                        "track": "stability",
+                        "value": 8
+                      }
+                    },
+                    {
+                      "op": "trackGte",
+                      "track": "stability",
+                      "value": 4
+                    }
+                  ]
+                },
+                {
+                  "op": "poolGte",
+                  "pool": "butchers-bill",
+                  "value": 10
+                }
+              ]
+            }
+          },
+          {
+            "key": "none-m2",
+            "weight": 5,
+            "label": "No reinforcements",
+            "narrative": {
+              "text": "No replacements are available this cycle.",
+              "speaker": "monolith",
+              "tags": []
+            },
+            "effects": [],
+            "when": {
+              "op": "all",
+              "of": [
+                {
+                  "op": "not",
+                  "cond": {
+                    "op": "trackGte",
+                    "track": "stability",
+                    "value": 4
+                  }
+                },
+                {
+                  "op": "not",
+                  "cond": {
+                    "op": "poolGte",
+                    "pool": "butchers-bill",
+                    "value": 10
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "key": "grunt-m2",
+            "weight": 3,
+            "label": "One replacement",
+            "narrative": {
+              "text": "One replacement assigned. Integrate at FOB BULWARK.",
+              "speaker": "monolith",
+              "tags": []
+            },
+            "effects": [
+              {
+                "op": "addOperator",
+                "team": "revenants",
+                "operator": {
+                  "fields": {
+                    "grade": "Sgt.",
+                    "card": "Replacement"
+                  },
+                  "tags": [
+                    "replacement"
+                  ]
+                }
+              }
+            ],
+            "when": {
+              "op": "all",
+              "of": [
+                {
+                  "op": "not",
+                  "cond": {
+                    "op": "trackGte",
+                    "track": "stability",
+                    "value": 4
+                  }
+                },
+                {
+                  "op": "not",
+                  "cond": {
+                    "op": "poolGte",
+                    "pool": "butchers-bill",
+                    "value": 10
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "key": "pair-m2",
+            "weight": 2,
+            "label": "Two replacements",
+            "narrative": {
+              "text": "Two replacements assigned. Integrate at FOB BULWARK.",
+              "speaker": "monolith",
+              "tags": []
+            },
+            "effects": [
+              {
+                "op": "addOperator",
+                "team": "revenants",
+                "operator": {
+                  "fields": {
+                    "grade": "Sgt.",
+                    "card": "Replacement"
+                  },
+                  "tags": [
+                    "replacement"
+                  ]
+                }
+              },
+              {
+                "op": "addOperator",
+                "team": "pale-horse",
+                "operator": {
+                  "fields": {
+                    "grade": "Sgt.",
+                    "card": "Replacement"
+                  },
+                  "tags": [
+                    "replacement"
+                  ]
+                }
+              }
+            ],
+            "when": {
+              "op": "all",
+              "of": [
+                {
+                  "op": "not",
+                  "cond": {
+                    "op": "trackGte",
+                    "track": "stability",
+                    "value": 4
+                  }
+                },
+                {
+                  "op": "not",
+                  "cond": {
+                    "op": "poolGte",
+                    "pool": "butchers-bill",
+                    "value": 10
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "key": "none-m3",
+            "weight": 6,
+            "label": "No reinforcements",
+            "narrative": {
+              "text": "No replacements are available this cycle.",
+              "speaker": "monolith",
+              "tags": []
+            },
+            "effects": [],
+            "when": {
+              "op": "all",
+              "of": [
+                {
+                  "op": "not",
+                  "cond": {
+                    "op": "trackGte",
+                    "track": "stability",
+                    "value": 4
+                  }
+                },
+                {
+                  "op": "poolGte",
+                  "pool": "butchers-bill",
+                  "value": 10
+                }
+              ]
+            }
+          },
+          {
+            "key": "grunt-m3",
+            "weight": 3,
+            "label": "One replacement",
+            "narrative": {
+              "text": "One replacement assigned. Integrate at FOB BULWARK.",
+              "speaker": "monolith",
+              "tags": []
+            },
+            "effects": [
+              {
+                "op": "addOperator",
+                "team": "revenants",
+                "operator": {
+                  "fields": {
+                    "grade": "Sgt.",
+                    "card": "Replacement"
+                  },
+                  "tags": [
+                    "replacement"
+                  ]
+                }
+              }
+            ],
+            "when": {
+              "op": "all",
+              "of": [
+                {
+                  "op": "not",
+                  "cond": {
+                    "op": "trackGte",
+                    "track": "stability",
+                    "value": 4
+                  }
+                },
+                {
+                  "op": "poolGte",
+                  "pool": "butchers-bill",
+                  "value": 10
+                }
+              ]
+            }
+          },
+          {
+            "key": "pair-m3",
+            "weight": 1,
+            "label": "Two replacements",
+            "narrative": {
+              "text": "Two replacements assigned. Integrate at FOB BULWARK.",
+              "speaker": "monolith",
+              "tags": []
+            },
+            "effects": [
+              {
+                "op": "addOperator",
+                "team": "revenants",
+                "operator": {
+                  "fields": {
+                    "grade": "Sgt.",
+                    "card": "Replacement"
+                  },
+                  "tags": [
+                    "replacement"
+                  ]
+                }
+              },
+              {
+                "op": "addOperator",
+                "team": "pale-horse",
+                "operator": {
+                  "fields": {
+                    "grade": "Sgt.",
+                    "card": "Replacement"
+                  },
+                  "tags": [
+                    "replacement"
+                  ]
+                }
+              }
+            ],
+            "when": {
+              "op": "all",
+              "of": [
+                {
+                  "op": "not",
+                  "cond": {
+                    "op": "trackGte",
+                    "track": "stability",
+                    "value": 4
+                  }
+                },
+                {
+                  "op": "poolGte",
+                  "pool": "butchers-bill",
+                  "value": 10
                 }
               ]
             }
@@ -1936,14 +3237,14 @@
       {
         "id": "advancement-tier-1",
         "name": "Advancement — Tier 1",
-        "text": "Roll when an operator reaches 8 XP. Record the result in the operator's Advancements field.",
+        "text": "Rolled automatically when an operator reaches 8 XP (onPromotion). Record the result in the operator's Advancements field.",
         "entries": [
           {
             "key": "steady",
             "weight": 2,
             "label": "Steady",
             "narrative": {
-              "text": "Ignores the AMBER readiness penalty. Does not negate Shaken."
+              "text": "{{operator.name}}: Ignores the AMBER readiness penalty. Does not negate Shaken."
             }
           },
           {
@@ -1951,7 +3252,7 @@
             "weight": 2,
             "label": "Fast Mover",
             "narrative": {
-              "text": "+1 Movement permanently."
+              "text": "{{operator.name}}: +1 Movement permanently."
             }
           },
           {
@@ -1959,7 +3260,7 @@
             "weight": 2,
             "label": "Hard Target",
             "narrative": {
-              "text": "Always counts as in Cover; does not stack with real Cover."
+              "text": "{{operator.name}}: Always counts as in Cover; does not stack with real Cover."
             }
           },
           {
@@ -1967,7 +3268,7 @@
             "weight": 2,
             "label": "Aggressive",
             "narrative": {
-              "text": "+1 Damage on the first successful Shot each Activation (not CQC or Blast)."
+              "text": "{{operator.name}}: +1 Damage on the first successful Shot each Activation (not CQC or Blast)."
             }
           },
           {
@@ -1975,7 +3276,7 @@
             "weight": 2,
             "label": "Calm Under Fire",
             "narrative": {
-              "text": "One Reaction per round without gaining an Engaged token."
+              "text": "{{operator.name}}: One Reaction per round without gaining an Engaged token."
             }
           }
         ],
@@ -1986,14 +3287,14 @@
       {
         "id": "advancement-tier-2",
         "name": "Advancement — Tier 2",
-        "text": "Roll when an operator reaches 18 XP. Record the result in the operator's Advancements field.",
+        "text": "Rolled automatically when an operator reaches 18 XP (onPromotion). Record the result in the operator's Advancements field.",
         "entries": [
           {
             "key": "skill-improvement",
             "weight": 2,
             "label": "Skill Improvement",
             "narrative": {
-              "text": "Skill improves by 1 (minimum Skill 4, Legendary)."
+              "text": "{{operator.name}}: Skill improves by 1 (minimum Skill 4, Legendary)."
             }
           },
           {
@@ -2001,7 +3302,7 @@
             "weight": 2,
             "label": "CQC Specialist",
             "narrative": {
-              "text": "+1 success on all CQC Skill Checks."
+              "text": "{{operator.name}}: +1 success on all CQC Skill Checks."
             }
           },
           {
@@ -2009,7 +3310,7 @@
             "weight": 2,
             "label": "Ironside",
             "narrative": {
-              "text": "+1 to the first Armor value."
+              "text": "{{operator.name}}: +1 to the first Armor value."
             }
           },
           {
@@ -2017,7 +3318,7 @@
             "weight": 2,
             "label": "Fire Team Leader",
             "narrative": {
-              "text": "One grunt of the same unit nearby uses this operator's Skill for Shooting."
+              "text": "{{operator.name}}: One grunt of the same unit nearby uses this operator's Skill for Shooting."
             }
           },
           {
@@ -2025,7 +3326,7 @@
             "weight": 2,
             "label": "Tactical Awareness",
             "narrative": {
-              "text": "Overwatch once per mission without a Ready token."
+              "text": "{{operator.name}}: Overwatch once per mission without a Ready token."
             }
           }
         ],
@@ -2036,14 +3337,14 @@
       {
         "id": "advancement-tier-3",
         "name": "Advancement — Tier 3",
-        "text": "Roll when an operator reaches 33 XP. Record the result in the operator's Advancements field.",
+        "text": "Rolled automatically when an operator reaches 33 XP (onPromotion). Record the result in the operator's Advancements field.",
         "entries": [
           {
             "key": "ace-operator",
             "weight": 2,
             "label": "Ace Operator",
             "narrative": {
-              "text": "Aces on 9 and 10."
+              "text": "{{operator.name}}: Aces on 9 and 10."
             }
           },
           {
@@ -2051,7 +3352,7 @@
             "weight": 2,
             "label": "Unkillable",
             "narrative": {
-              "text": "Once per campaign, survive the first Destruction with 1 Damage. +2 to Casualty Rolls."
+              "text": "{{operator.name}}: Once per campaign, survive the first Destruction with 1 Damage. +2 to Casualty Rolls."
             }
           },
           {
@@ -2059,7 +3360,7 @@
             "weight": 2,
             "label": "Weapon Master",
             "narrative": {
-              "text": "Fire two Weapons in one Shoot Action."
+              "text": "{{operator.name}}: Fire two Weapons in one Shoot Action."
             }
           },
           {
@@ -2067,7 +3368,7 @@
             "weight": 2,
             "label": "Ghost",
             "narrative": {
-              "text": "Does not trigger Overwatch Reactions."
+              "text": "{{operator.name}}: Does not trigger Overwatch Reactions."
             }
           },
           {
@@ -2075,7 +3376,7 @@
             "weight": 2,
             "label": "Legend",
             "narrative": {
-              "text": "Nearby friendly models gain +1 Skill. Name known across ABOL."
+              "text": "{{operator.name}}: Nearby friendly models gain +1 Skill. Name known across ABOL."
             }
           }
         ],
@@ -2088,7 +3389,7 @@
       {
         "id": "cold-iron",
         "name": "BLACKFALL — TASKFORCE GEMINI / OPERATION COLD IRON",
-        "summary": "Solo BLACKFALL campaign for UN Raid Force Alpha aboard The Harp, D+14. Three kill teams (Revenants, Pale Horse, Ironclad Golems) under STRATCOM handler MONOLITH. Tracks: Sector Stability (start 5), Escalation (start 2), Gemini Mystery Intel (0–15; milestones at 5, 10, 15). Readiness degrades within a window and resets between windows. Casualties are harsher than APACHE (Critical Wounds carry permanent penalties) and XP thresholds are 50% higher (8 / 18 / 33). Window 1 is fully authored; Windows 2–12 run on the tasking generator, STRATCOM Taskings and custom missions. Advancement: when an operator reaches a new tier, roll the matching Advancement table. RED readiness (stand down one window after a kill team lost half its strength) is set by manual adjustment.",
+        "summary": "Solo BLACKFALL campaign for UN Raid Force Alpha aboard The Harp, D+14. Three kill teams (Revenants, Pale Horse, Ironclad Golems) under STRATCOM handler MONOLITH. Tracks: Sector Stability (start 5), Escalation (start 2), Gemini Mystery Intel (0–15; milestones at 5, 10, 15). Readiness is automatic: AMBER after a team’s first tasking in a window, RED on its third (not Window 1) or after a Serious-or-worse casualty; it resets every window. Casualties are harsher than APACHE (Critical Wounds carry permanent penalties) and XP thresholds are 50% higher (8 / 18 / 33; advancement rolls are automatic). Kill teams hold 2–3 operators. A failed TRIPWIRE costs 1 from every Sector Stability gain during the next window. Window 1 is fully authored; Windows 2–12 run on the tasking generator, STRATCOM Taskings and custom missions. Reinforcements use the RFA table.",
         "intro": "Kill Squad Gemini is dead.\n\nFour UTG operators and eight Golems answered a Janus Security distress call during the Battle for The Harp. None came back. Combat footage shows three unidentified combatants taking the squad apart. Authority intelligence has not identified them.\n\nSTRATCOM has reconstituted the designation. The new Gemini is drawn from what Raid Force Alpha had left: operators pulled from broken squads, from garrison postings, and from the last cohort out of the enhancement pipeline. They carry the name of the dead.\n\nD+14. The Boone assault has stalled. Boone holds the upper levels and the gun bays; the Authority anchors the lower decks and the elevator stalks. Between them, the middle decks are no-man's-land.\n\nGEMINI's mandate: go where the line troops cannot, kill what they cannot kill, and hold what cannot be allowed to fall.",
         "rulesets": [],
         "personas": [
@@ -2176,9 +3477,6 @@
                     "card": "Golems",
                     "role": "Combat drone"
                   },
-                  "stats": {
-                    "drone": 1
-                  },
                   "tags": [
                     "golem"
                   ]
@@ -2190,9 +3488,6 @@
                     "grade": "",
                     "card": "Golems",
                     "role": "Combat drone"
-                  },
-                  "stats": {
-                    "drone": 1
                   },
                   "tags": [
                     "golem"
@@ -2208,16 +3503,9 @@
           "teamsMax": 5,
           "operatorsPerTeam": {
             "min": 1,
-            "max": 2
+            "max": 3
           },
           "stats": [
-            {
-              "key": "drone",
-              "name": "Golem Asset (1 = drone)",
-              "initial": 0,
-              "min": 0,
-              "max": 1
-            },
             {
               "key": "penalties",
               "name": "Permanent Penalties",
@@ -2649,11 +3937,14 @@
                         {
                           "op": "if",
                           "cond": {
-                            "op": "operatorStat",
-                            "target": "subject",
-                            "stat": "drone",
-                            "cmp": "eq",
-                            "value": 0
+                            "op": "not",
+                            "cond": {
+                              "op": "hasTag",
+                              "target": "subject",
+                              "tags": [
+                                "golem"
+                              ]
+                            }
                           },
                           "then": [
                             {
@@ -2709,21 +4000,21 @@
                   "help": "Engine-recorded. +1 XP per confirmed kill (UTG only).",
                   "perUnit": [
                     {
-                      "op": "if",
-                      "cond": {
-                        "op": "operatorStat",
-                        "target": "subject",
-                        "stat": "drone",
-                        "cmp": "eq",
-                        "value": 0
-                      },
-                      "then": [
-                        {
-                          "op": "addXp",
-                          "target": "subject",
-                          "amount": 1
+                      "op": "addXp",
+                      "target": {
+                        "from": "subject",
+                        "where": {
+                          "op": "not",
+                          "cond": {
+                            "op": "hasTag",
+                            "target": "subject",
+                            "tags": [
+                              "golem"
+                            ]
+                          }
                         }
-                      ]
+                      },
+                      "amount": 1
                     }
                   ]
                 },
@@ -2763,27 +4054,27 @@
                       "label": "1–2 — KIA"
                     }
                   ],
-                  "help": "Final result after modifiers (min 1, max 10): failure −1; isolated −1; TCCC +2 (medic +3); Golem cover +1; MEDEVAC (Harp) +1; base medic +2; Unkillable +2. Survivors +1 XP.",
+                  "help": "Final result after modifiers (min 1, max 10): failure −1; isolated −1; TCCC +2 (medic +3); Golem cover +1; MEDEVAC (Harp) +1; base medic +2; Unkillable +2. Survivors +1 XP. Serious or worse: team RED.",
                   "onValue": [
                     {
                       "value": "close-call",
                       "effects": [
                         {
-                          "op": "if",
-                          "cond": {
-                            "op": "operatorStat",
-                            "target": "subject",
-                            "stat": "drone",
-                            "cmp": "eq",
-                            "value": 0
-                          },
-                          "then": [
-                            {
-                              "op": "addXp",
-                              "target": "subject",
-                              "amount": 1
+                          "op": "addXp",
+                          "target": {
+                            "from": "subject",
+                            "where": {
+                              "op": "not",
+                              "cond": {
+                                "op": "hasTag",
+                                "target": "subject",
+                                "tags": [
+                                  "golem"
+                                ]
+                              }
                             }
-                          ]
+                          },
+                          "amount": 1
                         }
                       ]
                     },
@@ -2793,11 +4084,14 @@
                         {
                           "op": "if",
                           "cond": {
-                            "op": "operatorStat",
-                            "target": "subject",
-                            "stat": "drone",
-                            "cmp": "eq",
-                            "value": 0
+                            "op": "not",
+                            "cond": {
+                              "op": "hasTag",
+                              "target": "subject",
+                              "tags": [
+                                "golem"
+                              ]
+                            }
                           },
                           "then": [
                             {
@@ -2821,11 +4115,14 @@
                         {
                           "op": "if",
                           "cond": {
-                            "op": "operatorStat",
-                            "target": "subject",
-                            "stat": "drone",
-                            "cmp": "eq",
-                            "value": 0
+                            "op": "not",
+                            "cond": {
+                              "op": "hasTag",
+                              "target": "subject",
+                              "tags": [
+                                "golem"
+                              ]
+                            }
                           },
                           "then": [
                             {
@@ -2849,11 +4146,14 @@
                         {
                           "op": "if",
                           "cond": {
-                            "op": "operatorStat",
-                            "target": "subject",
-                            "stat": "drone",
-                            "cmp": "eq",
-                            "value": 0
+                            "op": "not",
+                            "cond": {
+                              "op": "hasTag",
+                              "target": "subject",
+                              "tags": [
+                                "golem"
+                              ]
+                            }
                           },
                           "then": [
                             {
@@ -2861,6 +4161,12 @@
                               "ladder": "casualty",
                               "target": "subject",
                               "state": "serious"
+                            },
+                            {
+                              "op": "setLadder",
+                              "ladder": "readiness",
+                              "target": "team",
+                              "state": "red"
                             },
                             {
                               "op": "addXp",
@@ -2877,11 +4183,14 @@
                         {
                           "op": "if",
                           "cond": {
-                            "op": "operatorStat",
-                            "target": "subject",
-                            "stat": "drone",
-                            "cmp": "eq",
-                            "value": 0
+                            "op": "not",
+                            "cond": {
+                              "op": "hasTag",
+                              "target": "subject",
+                              "tags": [
+                                "golem"
+                              ]
+                            }
                           },
                           "then": [
                             {
@@ -2889,6 +4198,12 @@
                               "ladder": "critical",
                               "target": "subject",
                               "state": "critical"
+                            },
+                            {
+                              "op": "setLadder",
+                              "ladder": "readiness",
+                              "target": "team",
+                              "state": "red"
                             },
                             {
                               "op": "adjustStat",
@@ -2911,13 +4226,22 @@
                         {
                           "op": "if",
                           "cond": {
-                            "op": "operatorStat",
-                            "target": "subject",
-                            "stat": "drone",
-                            "cmp": "eq",
-                            "value": 0
+                            "op": "not",
+                            "cond": {
+                              "op": "hasTag",
+                              "target": "subject",
+                              "tags": [
+                                "golem"
+                              ]
+                            }
                           },
                           "then": [
+                            {
+                              "op": "setLadder",
+                              "ladder": "readiness",
+                              "target": "team",
+                              "state": "red"
+                            },
                             {
                               "op": "setLadder",
                               "ladder": "casualty",
@@ -2958,11 +4282,11 @@
                         {
                           "op": "if",
                           "cond": {
-                            "op": "operatorStat",
+                            "op": "hasTag",
                             "target": "subject",
-                            "stat": "drone",
-                            "cmp": "eq",
-                            "value": 1
+                            "tags": [
+                              "golem"
+                            ]
                           },
                           "then": [
                             {
@@ -2981,11 +4305,11 @@
                         {
                           "op": "if",
                           "cond": {
-                            "op": "operatorStat",
+                            "op": "hasTag",
                             "target": "subject",
-                            "stat": "drone",
-                            "cmp": "eq",
-                            "value": 1
+                            "tags": [
+                              "golem"
+                            ]
                           },
                           "then": [
                             {
@@ -3008,9 +4332,25 @@
                 "name": "Enhanced Success (7+ VP)",
                 "effects": [
                   {
-                    "op": "adjustTrack",
-                    "track": "stability",
-                    "amount": 2
+                    "op": "if",
+                    "cond": {
+                      "op": "flag",
+                      "flag": "ied-penalty"
+                    },
+                    "then": [
+                      {
+                        "op": "adjustTrack",
+                        "track": "stability",
+                        "amount": 1
+                      }
+                    ],
+                    "else": [
+                      {
+                        "op": "adjustTrack",
+                        "track": "stability",
+                        "amount": 2
+                      }
+                    ]
                   },
                   {
                     "op": "grantAsset",
@@ -3033,9 +4373,25 @@
                 "name": "Success (5–6 VP)",
                 "effects": [
                   {
-                    "op": "adjustTrack",
-                    "track": "stability",
-                    "amount": 1
+                    "op": "if",
+                    "cond": {
+                      "op": "flag",
+                      "flag": "ied-penalty"
+                    },
+                    "then": [
+                      {
+                        "op": "adjustTrack",
+                        "track": "stability",
+                        "amount": 0
+                      }
+                    ],
+                    "else": [
+                      {
+                        "op": "adjustTrack",
+                        "track": "stability",
+                        "amount": 1
+                      }
+                    ]
                   },
                   {
                     "op": "grantAsset",
@@ -3331,9 +4687,25 @@
                       "value": "detained",
                       "effects": [
                         {
-                          "op": "adjustTrack",
-                          "track": "stability",
-                          "amount": 2
+                          "op": "if",
+                          "cond": {
+                            "op": "flag",
+                            "flag": "ied-penalty"
+                          },
+                          "then": [
+                            {
+                              "op": "adjustTrack",
+                              "track": "stability",
+                              "amount": 1
+                            }
+                          ],
+                          "else": [
+                            {
+                              "op": "adjustTrack",
+                              "track": "stability",
+                              "amount": 2
+                            }
+                          ]
                         },
                         {
                           "op": "if",
@@ -3401,11 +4773,14 @@
                         {
                           "op": "if",
                           "cond": {
-                            "op": "operatorStat",
-                            "target": "subject",
-                            "stat": "drone",
-                            "cmp": "eq",
-                            "value": 0
+                            "op": "not",
+                            "cond": {
+                              "op": "hasTag",
+                              "target": "subject",
+                              "tags": [
+                                "golem"
+                              ]
+                            }
                           },
                           "then": [
                             {
@@ -3461,21 +4836,21 @@
                   "help": "Engine-recorded. +1 XP per confirmed kill (UTG only).",
                   "perUnit": [
                     {
-                      "op": "if",
-                      "cond": {
-                        "op": "operatorStat",
-                        "target": "subject",
-                        "stat": "drone",
-                        "cmp": "eq",
-                        "value": 0
-                      },
-                      "then": [
-                        {
-                          "op": "addXp",
-                          "target": "subject",
-                          "amount": 1
+                      "op": "addXp",
+                      "target": {
+                        "from": "subject",
+                        "where": {
+                          "op": "not",
+                          "cond": {
+                            "op": "hasTag",
+                            "target": "subject",
+                            "tags": [
+                              "golem"
+                            ]
+                          }
                         }
-                      ]
+                      },
+                      "amount": 1
                     }
                   ]
                 },
@@ -3515,27 +4890,27 @@
                       "label": "1–2 — KIA"
                     }
                   ],
-                  "help": "Final result after modifiers (min 1, max 10): failure −1; isolated −1; TCCC +2 (medic +3); Golem cover +1; MEDEVAC (Harp) +1; base medic +2; Unkillable +2. Survivors +1 XP.",
+                  "help": "Final result after modifiers (min 1, max 10): failure −1; isolated −1; TCCC +2 (medic +3); Golem cover +1; MEDEVAC (Harp) +1; base medic +2; Unkillable +2. Survivors +1 XP. Serious or worse: team RED.",
                   "onValue": [
                     {
                       "value": "close-call",
                       "effects": [
                         {
-                          "op": "if",
-                          "cond": {
-                            "op": "operatorStat",
-                            "target": "subject",
-                            "stat": "drone",
-                            "cmp": "eq",
-                            "value": 0
-                          },
-                          "then": [
-                            {
-                              "op": "addXp",
-                              "target": "subject",
-                              "amount": 1
+                          "op": "addXp",
+                          "target": {
+                            "from": "subject",
+                            "where": {
+                              "op": "not",
+                              "cond": {
+                                "op": "hasTag",
+                                "target": "subject",
+                                "tags": [
+                                  "golem"
+                                ]
+                              }
                             }
-                          ]
+                          },
+                          "amount": 1
                         }
                       ]
                     },
@@ -3545,11 +4920,14 @@
                         {
                           "op": "if",
                           "cond": {
-                            "op": "operatorStat",
-                            "target": "subject",
-                            "stat": "drone",
-                            "cmp": "eq",
-                            "value": 0
+                            "op": "not",
+                            "cond": {
+                              "op": "hasTag",
+                              "target": "subject",
+                              "tags": [
+                                "golem"
+                              ]
+                            }
                           },
                           "then": [
                             {
@@ -3573,11 +4951,14 @@
                         {
                           "op": "if",
                           "cond": {
-                            "op": "operatorStat",
-                            "target": "subject",
-                            "stat": "drone",
-                            "cmp": "eq",
-                            "value": 0
+                            "op": "not",
+                            "cond": {
+                              "op": "hasTag",
+                              "target": "subject",
+                              "tags": [
+                                "golem"
+                              ]
+                            }
                           },
                           "then": [
                             {
@@ -3601,11 +4982,14 @@
                         {
                           "op": "if",
                           "cond": {
-                            "op": "operatorStat",
-                            "target": "subject",
-                            "stat": "drone",
-                            "cmp": "eq",
-                            "value": 0
+                            "op": "not",
+                            "cond": {
+                              "op": "hasTag",
+                              "target": "subject",
+                              "tags": [
+                                "golem"
+                              ]
+                            }
                           },
                           "then": [
                             {
@@ -3613,6 +4997,12 @@
                               "ladder": "casualty",
                               "target": "subject",
                               "state": "serious"
+                            },
+                            {
+                              "op": "setLadder",
+                              "ladder": "readiness",
+                              "target": "team",
+                              "state": "red"
                             },
                             {
                               "op": "addXp",
@@ -3629,11 +5019,14 @@
                         {
                           "op": "if",
                           "cond": {
-                            "op": "operatorStat",
-                            "target": "subject",
-                            "stat": "drone",
-                            "cmp": "eq",
-                            "value": 0
+                            "op": "not",
+                            "cond": {
+                              "op": "hasTag",
+                              "target": "subject",
+                              "tags": [
+                                "golem"
+                              ]
+                            }
                           },
                           "then": [
                             {
@@ -3641,6 +5034,12 @@
                               "ladder": "critical",
                               "target": "subject",
                               "state": "critical"
+                            },
+                            {
+                              "op": "setLadder",
+                              "ladder": "readiness",
+                              "target": "team",
+                              "state": "red"
                             },
                             {
                               "op": "adjustStat",
@@ -3663,13 +5062,22 @@
                         {
                           "op": "if",
                           "cond": {
-                            "op": "operatorStat",
-                            "target": "subject",
-                            "stat": "drone",
-                            "cmp": "eq",
-                            "value": 0
+                            "op": "not",
+                            "cond": {
+                              "op": "hasTag",
+                              "target": "subject",
+                              "tags": [
+                                "golem"
+                              ]
+                            }
                           },
                           "then": [
+                            {
+                              "op": "setLadder",
+                              "ladder": "readiness",
+                              "target": "team",
+                              "state": "red"
+                            },
                             {
                               "op": "setLadder",
                               "ladder": "casualty",
@@ -3710,11 +5118,11 @@
                         {
                           "op": "if",
                           "cond": {
-                            "op": "operatorStat",
+                            "op": "hasTag",
                             "target": "subject",
-                            "stat": "drone",
-                            "cmp": "eq",
-                            "value": 1
+                            "tags": [
+                              "golem"
+                            ]
                           },
                           "then": [
                             {
@@ -3733,11 +5141,11 @@
                         {
                           "op": "if",
                           "cond": {
-                            "op": "operatorStat",
+                            "op": "hasTag",
                             "target": "subject",
-                            "stat": "drone",
-                            "cmp": "eq",
-                            "value": 1
+                            "tags": [
+                              "golem"
+                            ]
                           },
                           "then": [
                             {
@@ -3760,9 +5168,25 @@
                 "name": "Enhanced Success (7+ VP)",
                 "effects": [
                   {
-                    "op": "adjustTrack",
-                    "track": "stability",
-                    "amount": 2
+                    "op": "if",
+                    "cond": {
+                      "op": "flag",
+                      "flag": "ied-penalty"
+                    },
+                    "then": [
+                      {
+                        "op": "adjustTrack",
+                        "track": "stability",
+                        "amount": 1
+                      }
+                    ],
+                    "else": [
+                      {
+                        "op": "adjustTrack",
+                        "track": "stability",
+                        "amount": 2
+                      }
+                    ]
                   },
                   {
                     "op": "grantAsset",
@@ -3780,9 +5204,25 @@
                 "name": "Success (4–6 VP)",
                 "effects": [
                   {
-                    "op": "adjustTrack",
-                    "track": "stability",
-                    "amount": 1
+                    "op": "if",
+                    "cond": {
+                      "op": "flag",
+                      "flag": "ied-penalty"
+                    },
+                    "then": [
+                      {
+                        "op": "adjustTrack",
+                        "track": "stability",
+                        "amount": 0
+                      }
+                    ],
+                    "else": [
+                      {
+                        "op": "adjustTrack",
+                        "track": "stability",
+                        "amount": 1
+                      }
+                    ]
                   }
                 ],
                 "narrative": {
@@ -4118,11 +5558,14 @@
                         {
                           "op": "if",
                           "cond": {
-                            "op": "operatorStat",
-                            "target": "subject",
-                            "stat": "drone",
-                            "cmp": "eq",
-                            "value": 0
+                            "op": "not",
+                            "cond": {
+                              "op": "hasTag",
+                              "target": "subject",
+                              "tags": [
+                                "golem"
+                              ]
+                            }
                           },
                           "then": [
                             {
@@ -4178,21 +5621,21 @@
                   "help": "Engine-recorded. +1 XP per confirmed kill (UTG only).",
                   "perUnit": [
                     {
-                      "op": "if",
-                      "cond": {
-                        "op": "operatorStat",
-                        "target": "subject",
-                        "stat": "drone",
-                        "cmp": "eq",
-                        "value": 0
-                      },
-                      "then": [
-                        {
-                          "op": "addXp",
-                          "target": "subject",
-                          "amount": 1
+                      "op": "addXp",
+                      "target": {
+                        "from": "subject",
+                        "where": {
+                          "op": "not",
+                          "cond": {
+                            "op": "hasTag",
+                            "target": "subject",
+                            "tags": [
+                              "golem"
+                            ]
+                          }
                         }
-                      ]
+                      },
+                      "amount": 1
                     }
                   ]
                 },
@@ -4232,27 +5675,27 @@
                       "label": "1–2 — KIA"
                     }
                   ],
-                  "help": "Final result after modifiers (min 1, max 10): failure −1; isolated −1; TCCC +2 (medic +3); Golem cover +1; MEDEVAC (Harp) +1; base medic +2; Unkillable +2. Survivors +1 XP.",
+                  "help": "Final result after modifiers (min 1, max 10): failure −1; isolated −1; TCCC +2 (medic +3); Golem cover +1; MEDEVAC (Harp) +1; base medic +2; Unkillable +2. Survivors +1 XP. Serious or worse: team RED.",
                   "onValue": [
                     {
                       "value": "close-call",
                       "effects": [
                         {
-                          "op": "if",
-                          "cond": {
-                            "op": "operatorStat",
-                            "target": "subject",
-                            "stat": "drone",
-                            "cmp": "eq",
-                            "value": 0
-                          },
-                          "then": [
-                            {
-                              "op": "addXp",
-                              "target": "subject",
-                              "amount": 1
+                          "op": "addXp",
+                          "target": {
+                            "from": "subject",
+                            "where": {
+                              "op": "not",
+                              "cond": {
+                                "op": "hasTag",
+                                "target": "subject",
+                                "tags": [
+                                  "golem"
+                                ]
+                              }
                             }
-                          ]
+                          },
+                          "amount": 1
                         }
                       ]
                     },
@@ -4262,11 +5705,14 @@
                         {
                           "op": "if",
                           "cond": {
-                            "op": "operatorStat",
-                            "target": "subject",
-                            "stat": "drone",
-                            "cmp": "eq",
-                            "value": 0
+                            "op": "not",
+                            "cond": {
+                              "op": "hasTag",
+                              "target": "subject",
+                              "tags": [
+                                "golem"
+                              ]
+                            }
                           },
                           "then": [
                             {
@@ -4290,11 +5736,14 @@
                         {
                           "op": "if",
                           "cond": {
-                            "op": "operatorStat",
-                            "target": "subject",
-                            "stat": "drone",
-                            "cmp": "eq",
-                            "value": 0
+                            "op": "not",
+                            "cond": {
+                              "op": "hasTag",
+                              "target": "subject",
+                              "tags": [
+                                "golem"
+                              ]
+                            }
                           },
                           "then": [
                             {
@@ -4318,11 +5767,14 @@
                         {
                           "op": "if",
                           "cond": {
-                            "op": "operatorStat",
-                            "target": "subject",
-                            "stat": "drone",
-                            "cmp": "eq",
-                            "value": 0
+                            "op": "not",
+                            "cond": {
+                              "op": "hasTag",
+                              "target": "subject",
+                              "tags": [
+                                "golem"
+                              ]
+                            }
                           },
                           "then": [
                             {
@@ -4330,6 +5782,12 @@
                               "ladder": "casualty",
                               "target": "subject",
                               "state": "serious"
+                            },
+                            {
+                              "op": "setLadder",
+                              "ladder": "readiness",
+                              "target": "team",
+                              "state": "red"
                             },
                             {
                               "op": "addXp",
@@ -4346,11 +5804,14 @@
                         {
                           "op": "if",
                           "cond": {
-                            "op": "operatorStat",
-                            "target": "subject",
-                            "stat": "drone",
-                            "cmp": "eq",
-                            "value": 0
+                            "op": "not",
+                            "cond": {
+                              "op": "hasTag",
+                              "target": "subject",
+                              "tags": [
+                                "golem"
+                              ]
+                            }
                           },
                           "then": [
                             {
@@ -4358,6 +5819,12 @@
                               "ladder": "critical",
                               "target": "subject",
                               "state": "critical"
+                            },
+                            {
+                              "op": "setLadder",
+                              "ladder": "readiness",
+                              "target": "team",
+                              "state": "red"
                             },
                             {
                               "op": "adjustStat",
@@ -4380,13 +5847,22 @@
                         {
                           "op": "if",
                           "cond": {
-                            "op": "operatorStat",
-                            "target": "subject",
-                            "stat": "drone",
-                            "cmp": "eq",
-                            "value": 0
+                            "op": "not",
+                            "cond": {
+                              "op": "hasTag",
+                              "target": "subject",
+                              "tags": [
+                                "golem"
+                              ]
+                            }
                           },
                           "then": [
+                            {
+                              "op": "setLadder",
+                              "ladder": "readiness",
+                              "target": "team",
+                              "state": "red"
+                            },
                             {
                               "op": "setLadder",
                               "ladder": "casualty",
@@ -4427,11 +5903,11 @@
                         {
                           "op": "if",
                           "cond": {
-                            "op": "operatorStat",
+                            "op": "hasTag",
                             "target": "subject",
-                            "stat": "drone",
-                            "cmp": "eq",
-                            "value": 1
+                            "tags": [
+                              "golem"
+                            ]
                           },
                           "then": [
                             {
@@ -4450,11 +5926,11 @@
                         {
                           "op": "if",
                           "cond": {
-                            "op": "operatorStat",
+                            "op": "hasTag",
                             "target": "subject",
-                            "stat": "drone",
-                            "cmp": "eq",
-                            "value": 1
+                            "tags": [
+                              "golem"
+                            ]
                           },
                           "then": [
                             {
@@ -4477,9 +5953,25 @@
                 "name": "Enhanced Success (4+ Intel)",
                 "effects": [
                   {
-                    "op": "adjustTrack",
-                    "track": "stability",
-                    "amount": 1
+                    "op": "if",
+                    "cond": {
+                      "op": "flag",
+                      "flag": "ied-penalty"
+                    },
+                    "then": [
+                      {
+                        "op": "adjustTrack",
+                        "track": "stability",
+                        "amount": 0
+                      }
+                    ],
+                    "else": [
+                      {
+                        "op": "adjustTrack",
+                        "track": "stability",
+                        "amount": 1
+                      }
+                    ]
                   }
                 ],
                 "narrative": {
@@ -4685,11 +6177,14 @@
                         {
                           "op": "if",
                           "cond": {
-                            "op": "operatorStat",
-                            "target": "subject",
-                            "stat": "drone",
-                            "cmp": "eq",
-                            "value": 0
+                            "op": "not",
+                            "cond": {
+                              "op": "hasTag",
+                              "target": "subject",
+                              "tags": [
+                                "golem"
+                              ]
+                            }
                           },
                           "then": [
                             {
@@ -4745,21 +6240,21 @@
                   "help": "Engine-recorded. +1 XP per confirmed kill (UTG only).",
                   "perUnit": [
                     {
-                      "op": "if",
-                      "cond": {
-                        "op": "operatorStat",
-                        "target": "subject",
-                        "stat": "drone",
-                        "cmp": "eq",
-                        "value": 0
-                      },
-                      "then": [
-                        {
-                          "op": "addXp",
-                          "target": "subject",
-                          "amount": 1
+                      "op": "addXp",
+                      "target": {
+                        "from": "subject",
+                        "where": {
+                          "op": "not",
+                          "cond": {
+                            "op": "hasTag",
+                            "target": "subject",
+                            "tags": [
+                              "golem"
+                            ]
+                          }
                         }
-                      ]
+                      },
+                      "amount": 1
                     }
                   ]
                 },
@@ -4799,27 +6294,27 @@
                       "label": "1–2 — KIA"
                     }
                   ],
-                  "help": "Final result after modifiers (min 1, max 10): failure −1; isolated −1; TCCC +2 (medic +3); Golem cover +1; MEDEVAC (Harp) +1; base medic +2; Unkillable +2. Survivors +1 XP.",
+                  "help": "Final result after modifiers (min 1, max 10): failure −1; isolated −1; TCCC +2 (medic +3); Golem cover +1; MEDEVAC (Harp) +1; base medic +2; Unkillable +2. Survivors +1 XP. Serious or worse: team RED.",
                   "onValue": [
                     {
                       "value": "close-call",
                       "effects": [
                         {
-                          "op": "if",
-                          "cond": {
-                            "op": "operatorStat",
-                            "target": "subject",
-                            "stat": "drone",
-                            "cmp": "eq",
-                            "value": 0
-                          },
-                          "then": [
-                            {
-                              "op": "addXp",
-                              "target": "subject",
-                              "amount": 1
+                          "op": "addXp",
+                          "target": {
+                            "from": "subject",
+                            "where": {
+                              "op": "not",
+                              "cond": {
+                                "op": "hasTag",
+                                "target": "subject",
+                                "tags": [
+                                  "golem"
+                                ]
+                              }
                             }
-                          ]
+                          },
+                          "amount": 1
                         }
                       ]
                     },
@@ -4829,11 +6324,14 @@
                         {
                           "op": "if",
                           "cond": {
-                            "op": "operatorStat",
-                            "target": "subject",
-                            "stat": "drone",
-                            "cmp": "eq",
-                            "value": 0
+                            "op": "not",
+                            "cond": {
+                              "op": "hasTag",
+                              "target": "subject",
+                              "tags": [
+                                "golem"
+                              ]
+                            }
                           },
                           "then": [
                             {
@@ -4857,11 +6355,14 @@
                         {
                           "op": "if",
                           "cond": {
-                            "op": "operatorStat",
-                            "target": "subject",
-                            "stat": "drone",
-                            "cmp": "eq",
-                            "value": 0
+                            "op": "not",
+                            "cond": {
+                              "op": "hasTag",
+                              "target": "subject",
+                              "tags": [
+                                "golem"
+                              ]
+                            }
                           },
                           "then": [
                             {
@@ -4885,11 +6386,14 @@
                         {
                           "op": "if",
                           "cond": {
-                            "op": "operatorStat",
-                            "target": "subject",
-                            "stat": "drone",
-                            "cmp": "eq",
-                            "value": 0
+                            "op": "not",
+                            "cond": {
+                              "op": "hasTag",
+                              "target": "subject",
+                              "tags": [
+                                "golem"
+                              ]
+                            }
                           },
                           "then": [
                             {
@@ -4897,6 +6401,12 @@
                               "ladder": "casualty",
                               "target": "subject",
                               "state": "serious"
+                            },
+                            {
+                              "op": "setLadder",
+                              "ladder": "readiness",
+                              "target": "team",
+                              "state": "red"
                             },
                             {
                               "op": "addXp",
@@ -4913,11 +6423,14 @@
                         {
                           "op": "if",
                           "cond": {
-                            "op": "operatorStat",
-                            "target": "subject",
-                            "stat": "drone",
-                            "cmp": "eq",
-                            "value": 0
+                            "op": "not",
+                            "cond": {
+                              "op": "hasTag",
+                              "target": "subject",
+                              "tags": [
+                                "golem"
+                              ]
+                            }
                           },
                           "then": [
                             {
@@ -4925,6 +6438,12 @@
                               "ladder": "critical",
                               "target": "subject",
                               "state": "critical"
+                            },
+                            {
+                              "op": "setLadder",
+                              "ladder": "readiness",
+                              "target": "team",
+                              "state": "red"
                             },
                             {
                               "op": "adjustStat",
@@ -4947,13 +6466,22 @@
                         {
                           "op": "if",
                           "cond": {
-                            "op": "operatorStat",
-                            "target": "subject",
-                            "stat": "drone",
-                            "cmp": "eq",
-                            "value": 0
+                            "op": "not",
+                            "cond": {
+                              "op": "hasTag",
+                              "target": "subject",
+                              "tags": [
+                                "golem"
+                              ]
+                            }
                           },
                           "then": [
+                            {
+                              "op": "setLadder",
+                              "ladder": "readiness",
+                              "target": "team",
+                              "state": "red"
+                            },
                             {
                               "op": "setLadder",
                               "ladder": "casualty",
@@ -4994,11 +6522,11 @@
                         {
                           "op": "if",
                           "cond": {
-                            "op": "operatorStat",
+                            "op": "hasTag",
                             "target": "subject",
-                            "stat": "drone",
-                            "cmp": "eq",
-                            "value": 1
+                            "tags": [
+                              "golem"
+                            ]
                           },
                           "then": [
                             {
@@ -5017,11 +6545,11 @@
                         {
                           "op": "if",
                           "cond": {
-                            "op": "operatorStat",
+                            "op": "hasTag",
                             "target": "subject",
-                            "stat": "drone",
-                            "cmp": "eq",
-                            "value": 1
+                            "tags": [
+                              "golem"
+                            ]
                           },
                           "then": [
                             {
@@ -5044,9 +6572,25 @@
                 "name": "Enhanced Success",
                 "effects": [
                   {
-                    "op": "adjustTrack",
-                    "track": "stability",
-                    "amount": 2
+                    "op": "if",
+                    "cond": {
+                      "op": "flag",
+                      "flag": "ied-penalty"
+                    },
+                    "then": [
+                      {
+                        "op": "adjustTrack",
+                        "track": "stability",
+                        "amount": 1
+                      }
+                    ],
+                    "else": [
+                      {
+                        "op": "adjustTrack",
+                        "track": "stability",
+                        "amount": 2
+                      }
+                    ]
                   }
                 ],
                 "narrative": {
@@ -5060,9 +6604,25 @@
                 "name": "Success",
                 "effects": [
                   {
-                    "op": "adjustTrack",
-                    "track": "stability",
-                    "amount": 1
+                    "op": "if",
+                    "cond": {
+                      "op": "flag",
+                      "flag": "ied-penalty"
+                    },
+                    "then": [
+                      {
+                        "op": "adjustTrack",
+                        "track": "stability",
+                        "amount": 0
+                      }
+                    ],
+                    "else": [
+                      {
+                        "op": "adjustTrack",
+                        "track": "stability",
+                        "amount": 1
+                      }
+                    ]
                   }
                 ],
                 "narrative": {
@@ -5195,11 +6755,14 @@
                         {
                           "op": "if",
                           "cond": {
-                            "op": "operatorStat",
-                            "target": "subject",
-                            "stat": "drone",
-                            "cmp": "eq",
-                            "value": 0
+                            "op": "not",
+                            "cond": {
+                              "op": "hasTag",
+                              "target": "subject",
+                              "tags": [
+                                "golem"
+                              ]
+                            }
                           },
                           "then": [
                             {
@@ -5255,21 +6818,21 @@
                   "help": "Engine-recorded. +1 XP per confirmed kill (UTG only).",
                   "perUnit": [
                     {
-                      "op": "if",
-                      "cond": {
-                        "op": "operatorStat",
-                        "target": "subject",
-                        "stat": "drone",
-                        "cmp": "eq",
-                        "value": 0
-                      },
-                      "then": [
-                        {
-                          "op": "addXp",
-                          "target": "subject",
-                          "amount": 1
+                      "op": "addXp",
+                      "target": {
+                        "from": "subject",
+                        "where": {
+                          "op": "not",
+                          "cond": {
+                            "op": "hasTag",
+                            "target": "subject",
+                            "tags": [
+                              "golem"
+                            ]
+                          }
                         }
-                      ]
+                      },
+                      "amount": 1
                     }
                   ]
                 },
@@ -5309,27 +6872,27 @@
                       "label": "1–2 — KIA"
                     }
                   ],
-                  "help": "Final result after modifiers (min 1, max 10): failure −1; isolated −1; TCCC +2 (medic +3); Golem cover +1; MEDEVAC (Harp) +1; base medic +2; Unkillable +2. Survivors +1 XP.",
+                  "help": "Final result after modifiers (min 1, max 10): failure −1; isolated −1; TCCC +2 (medic +3); Golem cover +1; MEDEVAC (Harp) +1; base medic +2; Unkillable +2. Survivors +1 XP. Serious or worse: team RED.",
                   "onValue": [
                     {
                       "value": "close-call",
                       "effects": [
                         {
-                          "op": "if",
-                          "cond": {
-                            "op": "operatorStat",
-                            "target": "subject",
-                            "stat": "drone",
-                            "cmp": "eq",
-                            "value": 0
-                          },
-                          "then": [
-                            {
-                              "op": "addXp",
-                              "target": "subject",
-                              "amount": 1
+                          "op": "addXp",
+                          "target": {
+                            "from": "subject",
+                            "where": {
+                              "op": "not",
+                              "cond": {
+                                "op": "hasTag",
+                                "target": "subject",
+                                "tags": [
+                                  "golem"
+                                ]
+                              }
                             }
-                          ]
+                          },
+                          "amount": 1
                         }
                       ]
                     },
@@ -5339,11 +6902,14 @@
                         {
                           "op": "if",
                           "cond": {
-                            "op": "operatorStat",
-                            "target": "subject",
-                            "stat": "drone",
-                            "cmp": "eq",
-                            "value": 0
+                            "op": "not",
+                            "cond": {
+                              "op": "hasTag",
+                              "target": "subject",
+                              "tags": [
+                                "golem"
+                              ]
+                            }
                           },
                           "then": [
                             {
@@ -5367,11 +6933,14 @@
                         {
                           "op": "if",
                           "cond": {
-                            "op": "operatorStat",
-                            "target": "subject",
-                            "stat": "drone",
-                            "cmp": "eq",
-                            "value": 0
+                            "op": "not",
+                            "cond": {
+                              "op": "hasTag",
+                              "target": "subject",
+                              "tags": [
+                                "golem"
+                              ]
+                            }
                           },
                           "then": [
                             {
@@ -5395,11 +6964,14 @@
                         {
                           "op": "if",
                           "cond": {
-                            "op": "operatorStat",
-                            "target": "subject",
-                            "stat": "drone",
-                            "cmp": "eq",
-                            "value": 0
+                            "op": "not",
+                            "cond": {
+                              "op": "hasTag",
+                              "target": "subject",
+                              "tags": [
+                                "golem"
+                              ]
+                            }
                           },
                           "then": [
                             {
@@ -5407,6 +6979,12 @@
                               "ladder": "casualty",
                               "target": "subject",
                               "state": "serious"
+                            },
+                            {
+                              "op": "setLadder",
+                              "ladder": "readiness",
+                              "target": "team",
+                              "state": "red"
                             },
                             {
                               "op": "addXp",
@@ -5423,11 +7001,14 @@
                         {
                           "op": "if",
                           "cond": {
-                            "op": "operatorStat",
-                            "target": "subject",
-                            "stat": "drone",
-                            "cmp": "eq",
-                            "value": 0
+                            "op": "not",
+                            "cond": {
+                              "op": "hasTag",
+                              "target": "subject",
+                              "tags": [
+                                "golem"
+                              ]
+                            }
                           },
                           "then": [
                             {
@@ -5435,6 +7016,12 @@
                               "ladder": "critical",
                               "target": "subject",
                               "state": "critical"
+                            },
+                            {
+                              "op": "setLadder",
+                              "ladder": "readiness",
+                              "target": "team",
+                              "state": "red"
                             },
                             {
                               "op": "adjustStat",
@@ -5457,13 +7044,22 @@
                         {
                           "op": "if",
                           "cond": {
-                            "op": "operatorStat",
-                            "target": "subject",
-                            "stat": "drone",
-                            "cmp": "eq",
-                            "value": 0
+                            "op": "not",
+                            "cond": {
+                              "op": "hasTag",
+                              "target": "subject",
+                              "tags": [
+                                "golem"
+                              ]
+                            }
                           },
                           "then": [
+                            {
+                              "op": "setLadder",
+                              "ladder": "readiness",
+                              "target": "team",
+                              "state": "red"
+                            },
                             {
                               "op": "setLadder",
                               "ladder": "casualty",
@@ -5504,11 +7100,11 @@
                         {
                           "op": "if",
                           "cond": {
-                            "op": "operatorStat",
+                            "op": "hasTag",
                             "target": "subject",
-                            "stat": "drone",
-                            "cmp": "eq",
-                            "value": 1
+                            "tags": [
+                              "golem"
+                            ]
                           },
                           "then": [
                             {
@@ -5527,11 +7123,11 @@
                         {
                           "op": "if",
                           "cond": {
-                            "op": "operatorStat",
+                            "op": "hasTag",
                             "target": "subject",
-                            "stat": "drone",
-                            "cmp": "eq",
-                            "value": 1
+                            "tags": [
+                              "golem"
+                            ]
                           },
                           "then": [
                             {
@@ -5554,9 +7150,25 @@
                 "name": "Enhanced Success",
                 "effects": [
                   {
-                    "op": "adjustTrack",
-                    "track": "stability",
-                    "amount": 1
+                    "op": "if",
+                    "cond": {
+                      "op": "flag",
+                      "flag": "ied-penalty"
+                    },
+                    "then": [
+                      {
+                        "op": "adjustTrack",
+                        "track": "stability",
+                        "amount": 0
+                      }
+                    ],
+                    "else": [
+                      {
+                        "op": "adjustTrack",
+                        "track": "stability",
+                        "amount": 1
+                      }
+                    ]
                   }
                 ],
                 "narrative": {
@@ -5698,12 +7310,12 @@
               {
                 "key": "destroyed",
                 "name": "Destroyed",
-                "text": "Written off (logged as retired: equipment, not personnel; no inquiry). Replace via reinforcements.",
+                "text": "Written off: equipment, not personnel (no inquiry, not on the Butcher's Bill). Replace via reinforcements.",
                 "onEnter": [
                   {
                     "op": "removeOperator",
                     "target": "subject",
-                    "reason": "retired"
+                    "reason": "destroyed"
                   }
                 ]
               }
@@ -5723,12 +7335,12 @@
               {
                 "key": "amber",
                 "name": "AMBER",
-                "text": "−1 Skill on all checks. Set after a kill team's first tasking in a window."
+                "text": "−1 Skill on all checks. Set automatically after a kill team's first tasking in a window."
               },
               {
                 "key": "red",
                 "name": "RED",
-                "text": "Stand down this window. If forced: −2 Skill, no Reactions in round 1. Set by manual adjustment at window start when the team lost half or more of its strength last window."
+                "text": "Stand down for the rest of the window. If forced: −2 Skill, no Reactions in round 1. Set automatically on a team's third tasking in a window (not Window 1) or a Serious-or-worse casualty."
               }
             ],
             "initial": "green"
@@ -5911,7 +7523,7 @@
           },
           {
             "key": "window-brief",
-            "text": "/// MONOLITH — WARNORD // {{campaign.stage}} ///\nCLASSIFICATION: AUTHORITY — RESTRICTED.\n\nTasking for this window follows. Rotate kill teams; a team tasked twice in one window operates degraded. Rules of engagement as standing.\n\nTaskings outside the standard portfolio will be issued as custom missions.\n\nMONOLITH out.",
+            "text": "/// MONOLITH — WARNORD // {{campaign.stage}} ///\nCLASSIFICATION: AUTHORITY — RESTRICTED. TO: GEMINI ACTUAL, {{campaign.factionName}}.\n\nTasking for this window follows. Rotate kill teams; a team tasked twice in one window operates degraded, and a third tasking stands it down. Rules of engagement as standing.\n\nTaskings outside the standard portfolio will be issued as custom missions.\n\nMONOLITH out.",
             "speaker": "monolith",
             "title": "WARNORD"
           },
@@ -6167,6 +7779,18 @@
             "text": "Quarterly personnel review complete. STRATCOM allocation follows.",
             "speaker": "monolith",
             "title": "Personnel Review"
+          },
+          {
+            "key": "ied-penalty",
+            "text": "3rd Battalion losses to the Corridor 7-Delta cell continue. Sector confidence is eroding; expect diminished returns on stabilization this window.",
+            "speaker": "monolith",
+            "title": "Sector Confidence"
+          },
+          {
+            "key": "promotion-review",
+            "text": "{{operator.field.grade}} {{operator.name}}: performance review complete. Advancement to {{operator.rank}} is approved.",
+            "speaker": "monolith",
+            "title": "Performance Review"
           }
         ],
         "triggers": [
@@ -6215,6 +7839,42 @@
               {
                 "op": "setFlag",
                 "flag": "golems-committed",
+                "value": false
+              }
+            ]
+          },
+          {
+            "key": "ied-penalty-start",
+            "on": "onStageStart",
+            "when": {
+              "op": "flag",
+              "flag": "ied-campaign"
+            },
+            "narrative": "ied-penalty",
+            "effects": [
+              {
+                "op": "setFlag",
+                "flag": "ied-campaign",
+                "value": false
+              },
+              {
+                "op": "setFlag",
+                "flag": "ied-penalty",
+                "value": true
+              }
+            ]
+          },
+          {
+            "key": "ied-penalty-end",
+            "on": "onStageEnd",
+            "when": {
+              "op": "flag",
+              "flag": "ied-penalty"
+            },
+            "effects": [
+              {
+                "op": "setFlag",
+                "flag": "ied-penalty",
                 "value": false
               }
             ]
@@ -6381,26 +8041,62 @@
             ]
           },
           {
-            "key": "readiness-degrade",
+            "key": "readiness-update",
             "on": "onMissionResolved",
             "effects": [
               {
-                "op": "if",
-                "cond": {
-                  "op": "ladderIs",
-                  "ladder": "readiness",
-                  "target": "participants",
-                  "states": [
-                    "red"
-                  ],
-                  "match": "none"
+                "op": "forEachTeam",
+                "where": {
+                  "op": "teamMissions",
+                  "cmp": "gte",
+                  "value": 1
                 },
-                "then": [
+                "effects": [
                   {
-                    "op": "setLadder",
-                    "ladder": "readiness",
-                    "target": "participants",
-                    "state": "amber"
+                    "op": "if",
+                    "cond": {
+                      "op": "all",
+                      "of": [
+                        {
+                          "op": "teamMissions",
+                          "cmp": "gte",
+                          "value": 3
+                        },
+                        {
+                          "op": "not",
+                          "cond": {
+                            "op": "stageIs",
+                            "stage": "w1"
+                          }
+                        }
+                      ]
+                    },
+                    "then": [
+                      {
+                        "op": "setLadder",
+                        "ladder": "readiness",
+                        "state": "red"
+                      }
+                    ],
+                    "else": [
+                      {
+                        "op": "if",
+                        "cond": {
+                          "op": "ladderIs",
+                          "ladder": "readiness",
+                          "states": [
+                            "green"
+                          ]
+                        },
+                        "then": [
+                          {
+                            "op": "setLadder",
+                            "ladder": "readiness",
+                            "state": "amber"
+                          }
+                        ]
+                      }
+                    ]
                   }
                 ]
               }
@@ -6413,12 +8109,11 @@
               {
                 "op": "if",
                 "cond": {
-                  "op": "operatorStat",
+                  "op": "hasTag",
                   "target": "participants",
-                  "stat": "drone",
-                  "cmp": "eq",
-                  "value": 1,
-                  "match": "any"
+                  "tags": [
+                    "golem"
+                  ]
                 },
                 "then": [
                   {
@@ -6519,6 +8214,48 @@
             ]
           },
           {
+            "key": "advancement-1",
+            "on": "onPromotion",
+            "filter": {
+              "rank": "tier-1"
+            },
+            "narrative": "promotion-review",
+            "effects": [
+              {
+                "op": "rollTable",
+                "table": "advancement-tier-1"
+              }
+            ]
+          },
+          {
+            "key": "advancement-2",
+            "on": "onPromotion",
+            "filter": {
+              "rank": "tier-2"
+            },
+            "narrative": "promotion-review",
+            "effects": [
+              {
+                "op": "rollTable",
+                "table": "advancement-tier-2"
+              }
+            ]
+          },
+          {
+            "key": "advancement-3",
+            "on": "onPromotion",
+            "filter": {
+              "rank": "tier-3"
+            },
+            "narrative": "promotion-review",
+            "effects": [
+              {
+                "op": "rollTable",
+                "table": "advancement-tier-3"
+              }
+            ]
+          },
+          {
             "key": "reinforcements",
             "on": "onStageEnd",
             "when": {
@@ -6530,7 +8267,13 @@
             "effects": [
               {
                 "op": "rollTable",
-                "table": "cold-iron-reinforcements"
+                "table": "standard-reinforcements",
+                "byFaction": [
+                  {
+                    "faction": "rfa",
+                    "table": "rfa-reinforcements"
+                  }
+                ]
               },
               {
                 "op": "adjustPool",
@@ -6580,8 +8323,591 @@
             "key": "golem-upgrade",
             "name": "Golem Upgrade Package",
             "text": "Permanent weapon/armour improvement on one existing Golem."
+          },
+          {
+            "key": "asset-attachment",
+            "name": "Asset Attachment",
+            "text": "A vehicle or support asset attached to the taskforce (standard reinforcement table)."
           }
         ],
+        "factions": [
+          {
+            "key": "rfa",
+            "name": "UN Raid Force Alpha",
+            "text": "UTG kill squads under Authority STRATCOM. Smallest footprint in BLACKFALL; replacements come only from the enhancement pipeline.",
+            "tags": [
+              "utg"
+            ]
+          }
+        ],
+        "customMission": {
+          "aar": {
+            "fields": [
+              {
+                "key": "vp",
+                "label": "Victory points",
+                "kind": "number",
+                "scope": "mission",
+                "min": -5,
+                "max": 20,
+                "help": "Record only. Pick the outcome from the VP thresholds."
+              },
+              {
+                "key": "pois",
+                "label": "PoIs secured",
+                "kind": "number",
+                "scope": "mission",
+                "min": 0,
+                "max": 6,
+                "default": 0,
+                "help": "Record only."
+              },
+              {
+                "key": "enemy-reported",
+                "label": "Enemy models that escaped to report",
+                "kind": "number",
+                "scope": "mission",
+                "min": 0,
+                "max": 10,
+                "default": 0,
+                "help": "+1 Escalation each.",
+                "perUnit": [
+                  {
+                    "op": "adjustTrack",
+                    "track": "escalation",
+                    "amount": 1
+                  }
+                ]
+              },
+              {
+                "key": "intel",
+                "label": "Gemini Mystery Intel recovered",
+                "kind": "number",
+                "scope": "mission",
+                "min": 0,
+                "max": 10,
+                "default": 0,
+                "help": "Total intel from this mission. Each point advances the Gemini Mystery track.",
+                "perUnit": [
+                  {
+                    "op": "adjustTrack",
+                    "track": "intel",
+                    "amount": 1
+                  }
+                ]
+              },
+              {
+                "key": "participated",
+                "label": "Deployed",
+                "kind": "boolean",
+                "scope": "operator",
+                "help": "Engine-recorded. UTG XP: +1 deployed, +1 on success or better, +1 more on enhanced. Clears Shaken. Golems earn no XP.",
+                "onValue": [
+                  {
+                    "value": true,
+                    "effects": [
+                      {
+                        "op": "setLadder",
+                        "ladder": "morale",
+                        "target": "subject",
+                        "state": "steady"
+                      },
+                      {
+                        "op": "if",
+                        "cond": {
+                          "op": "not",
+                          "cond": {
+                            "op": "hasTag",
+                            "target": "subject",
+                            "tags": [
+                              "golem"
+                            ]
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "addXp",
+                            "target": "subject",
+                            "amount": 1
+                          },
+                          {
+                            "op": "if",
+                            "cond": {
+                              "op": "missionOutcome",
+                              "outcomes": [
+                                "success",
+                                "enhanced"
+                              ]
+                            },
+                            "then": [
+                              {
+                                "op": "addXp",
+                                "target": "subject",
+                                "amount": 1
+                              }
+                            ]
+                          },
+                          {
+                            "op": "if",
+                            "cond": {
+                              "op": "missionOutcome",
+                              "outcomes": [
+                                "enhanced"
+                              ]
+                            },
+                            "then": [
+                              {
+                                "op": "addXp",
+                                "target": "subject",
+                                "amount": 1
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "key": "kills",
+                "label": "Confirmed kills",
+                "kind": "number",
+                "scope": "operator",
+                "min": 0,
+                "help": "Engine-recorded. +1 XP per confirmed kill (UTG only).",
+                "perUnit": [
+                  {
+                    "op": "addXp",
+                    "target": {
+                      "from": "subject",
+                      "where": {
+                        "op": "not",
+                        "cond": {
+                          "op": "hasTag",
+                          "target": "subject",
+                          "tags": [
+                            "golem"
+                          ]
+                        }
+                      }
+                    },
+                    "amount": 1
+                  }
+                ]
+              },
+              {
+                "key": "casualty",
+                "label": "Casualty roll (UTG)",
+                "kind": "choice",
+                "scope": "operator",
+                "default": "none",
+                "options": [
+                  {
+                    "value": "none",
+                    "label": "Not a casualty"
+                  },
+                  {
+                    "value": "close-call",
+                    "label": "10 — Close Call"
+                  },
+                  {
+                    "value": "shaken",
+                    "label": "9 — Shaken"
+                  },
+                  {
+                    "value": "light",
+                    "label": "7–8 — Light Wound"
+                  },
+                  {
+                    "value": "serious",
+                    "label": "5–6 — Serious Wound"
+                  },
+                  {
+                    "value": "critical",
+                    "label": "3–4 — Critical Wound"
+                  },
+                  {
+                    "value": "kia",
+                    "label": "1–2 — KIA"
+                  }
+                ],
+                "help": "Final result after modifiers (min 1, max 10): failure −1; isolated −1; TCCC +2 (medic +3); Golem cover +1; MEDEVAC (Harp) +1; base medic +2; Unkillable +2. Survivors +1 XP. Serious or worse: team RED.",
+                "onValue": [
+                  {
+                    "value": "close-call",
+                    "effects": [
+                      {
+                        "op": "addXp",
+                        "target": {
+                          "from": "subject",
+                          "where": {
+                            "op": "not",
+                            "cond": {
+                              "op": "hasTag",
+                              "target": "subject",
+                              "tags": [
+                                "golem"
+                              ]
+                            }
+                          }
+                        },
+                        "amount": 1
+                      }
+                    ]
+                  },
+                  {
+                    "value": "shaken",
+                    "effects": [
+                      {
+                        "op": "if",
+                        "cond": {
+                          "op": "not",
+                          "cond": {
+                            "op": "hasTag",
+                            "target": "subject",
+                            "tags": [
+                              "golem"
+                            ]
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "setLadder",
+                            "ladder": "morale",
+                            "target": "subject",
+                            "state": "shaken"
+                          },
+                          {
+                            "op": "addXp",
+                            "target": "subject",
+                            "amount": 1
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "value": "light",
+                    "effects": [
+                      {
+                        "op": "if",
+                        "cond": {
+                          "op": "not",
+                          "cond": {
+                            "op": "hasTag",
+                            "target": "subject",
+                            "tags": [
+                              "golem"
+                            ]
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "setLadder",
+                            "ladder": "casualty",
+                            "target": "subject",
+                            "state": "light"
+                          },
+                          {
+                            "op": "addXp",
+                            "target": "subject",
+                            "amount": 1
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "value": "serious",
+                    "effects": [
+                      {
+                        "op": "if",
+                        "cond": {
+                          "op": "not",
+                          "cond": {
+                            "op": "hasTag",
+                            "target": "subject",
+                            "tags": [
+                              "golem"
+                            ]
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "setLadder",
+                            "ladder": "casualty",
+                            "target": "subject",
+                            "state": "serious"
+                          },
+                          {
+                            "op": "setLadder",
+                            "ladder": "readiness",
+                            "target": "team",
+                            "state": "red"
+                          },
+                          {
+                            "op": "addXp",
+                            "target": "subject",
+                            "amount": 1
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "value": "critical",
+                    "effects": [
+                      {
+                        "op": "if",
+                        "cond": {
+                          "op": "not",
+                          "cond": {
+                            "op": "hasTag",
+                            "target": "subject",
+                            "tags": [
+                              "golem"
+                            ]
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "setLadder",
+                            "ladder": "critical",
+                            "target": "subject",
+                            "state": "critical"
+                          },
+                          {
+                            "op": "setLadder",
+                            "ladder": "readiness",
+                            "target": "team",
+                            "state": "red"
+                          },
+                          {
+                            "op": "adjustStat",
+                            "target": "subject",
+                            "stat": "penalties",
+                            "amount": 1
+                          },
+                          {
+                            "op": "addXp",
+                            "target": "subject",
+                            "amount": 1
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "value": "kia",
+                    "effects": [
+                      {
+                        "op": "if",
+                        "cond": {
+                          "op": "not",
+                          "cond": {
+                            "op": "hasTag",
+                            "target": "subject",
+                            "tags": [
+                              "golem"
+                            ]
+                          }
+                        },
+                        "then": [
+                          {
+                            "op": "setLadder",
+                            "ladder": "readiness",
+                            "target": "team",
+                            "state": "red"
+                          },
+                          {
+                            "op": "setLadder",
+                            "ladder": "casualty",
+                            "target": "subject",
+                            "state": "kia"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "key": "golem-damage",
+                "label": "Golem status",
+                "kind": "choice",
+                "scope": "operator",
+                "default": "none",
+                "options": [
+                  {
+                    "value": "none",
+                    "label": "Undamaged"
+                  },
+                  {
+                    "value": "damaged",
+                    "label": "Damaged"
+                  },
+                  {
+                    "value": "destroyed",
+                    "label": "Destroyed"
+                  }
+                ],
+                "help": "Golems only. Damaged: repaired after one window (immediately at Sector Stability 8+).",
+                "onValue": [
+                  {
+                    "value": "damaged",
+                    "effects": [
+                      {
+                        "op": "if",
+                        "cond": {
+                          "op": "hasTag",
+                          "target": "subject",
+                          "tags": [
+                            "golem"
+                          ]
+                        },
+                        "then": [
+                          {
+                            "op": "setLadder",
+                            "ladder": "drone-status",
+                            "target": "subject",
+                            "state": "damaged"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "value": "destroyed",
+                    "effects": [
+                      {
+                        "op": "if",
+                        "cond": {
+                          "op": "hasTag",
+                          "target": "subject",
+                          "tags": [
+                            "golem"
+                          ]
+                        },
+                        "then": [
+                          {
+                            "op": "setLadder",
+                            "ladder": "drone-status",
+                            "target": "subject",
+                            "state": "destroyed"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          "outcomes": [
+            {
+              "key": "enhanced",
+              "name": "Enhanced Success",
+              "effects": [
+                {
+                  "op": "if",
+                  "cond": {
+                    "op": "flag",
+                    "flag": "ied-penalty"
+                  },
+                  "then": [
+                    {
+                      "op": "adjustTrack",
+                      "track": "stability",
+                      "amount": 1
+                    }
+                  ],
+                  "else": [
+                    {
+                      "op": "adjustTrack",
+                      "track": "stability",
+                      "amount": 2
+                    }
+                  ]
+                }
+              ],
+              "narrative": {
+                "text": "{{mission.name}} confirmed, bonus objective achieved. Performance is noted.",
+                "speaker": "monolith",
+                "tags": []
+              }
+            },
+            {
+              "key": "success",
+              "name": "Success",
+              "effects": [
+                {
+                  "op": "if",
+                  "cond": {
+                    "op": "flag",
+                    "flag": "ied-penalty"
+                  },
+                  "then": [
+                    {
+                      "op": "adjustTrack",
+                      "track": "stability",
+                      "amount": 0
+                    }
+                  ],
+                  "else": [
+                    {
+                      "op": "adjustTrack",
+                      "track": "stability",
+                      "amount": 1
+                    }
+                  ]
+                }
+              ],
+              "narrative": {
+                "text": "{{mission.name}} confirmed. Objective achieved.",
+                "speaker": "monolith",
+                "tags": []
+              }
+            },
+            {
+              "key": "partial",
+              "name": "Partial Success",
+              "effects": [
+                {
+                  "op": "adjustTrack",
+                  "track": "escalation",
+                  "amount": 1
+                }
+              ],
+              "narrative": {
+                "text": "{{mission.name}}: objective partially achieved. Enemy awareness assessed as elevated.",
+                "speaker": "monolith",
+                "tags": []
+              }
+            },
+            {
+              "key": "failure",
+              "name": "Failure",
+              "effects": [
+                {
+                  "op": "adjustTrack",
+                  "track": "stability",
+                  "amount": -1
+                },
+                {
+                  "op": "adjustTrack",
+                  "track": "escalation",
+                  "amount": 1
+                }
+              ],
+              "narrative": {
+                "text": "{{mission.name}}: objective not achieved. Logged.",
+                "speaker": "monolith",
+                "tags": []
+              }
+            }
+          ]
+        },
         "tags": [
           "military",
           "solo"
