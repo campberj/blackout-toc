@@ -52,7 +52,9 @@ export class BoardController {
   }
 
   async run(command: GameCommandInput): Promise<boolean> {
-    return this.#settle(await this.#sessions.dispatch(this.id, command), command);
+    // Commands are persisted: strip Svelte proxies (IndexedDB can't clone them).
+    const plain = $state.snapshot(command) as typeof command;
+    return this.#settle(await this.#sessions.dispatch(this.id, plain), plain);
   }
 
   async confirmForce(): Promise<boolean> {

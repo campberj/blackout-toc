@@ -13,6 +13,7 @@
   import { href } from '../../router.svelte';
   import { useAppState } from '../../state/app-context.svelte';
   import { normalizeTag, tagOptions } from './settings-model';
+  import BackupPanel from './BackupPanel.svelte';
 
   const app = useAppState();
 
@@ -111,16 +112,26 @@
         </div>
         {#if !app.isPersistent}
           <p class="note warn">
-            <Icon name="alert" size={16} />Browser storage is unavailable (private browsing?). Everything you do is lost when this tab closes. Export rosters, units and packs before leaving.
+            <Icon name="alert" size={16} />Browser storage is unavailable (private browsing?). Everything you do is lost when this tab closes. Export a backup before leaving.
           </p>
         {:else}
-          <p class="note">Data stays in this browser only. Clearing site data deletes it, so export anything you want to keep.</p>
+          <p class="note">Data stays in this browser only. Clearing site data deletes it, so export a backup now and then.</p>
         {/if}
-        <div class="cluster gap">
-          <LinkButton href={href('/roster')}>Rosters</LinkButton>
-          <LinkButton href={href('/forge')}>Custom units</LinkButton>
-          <LinkButton href={href('/library')}>Packs</LinkButton>
-        </div>
+      {/if}
+    </Panel>
+
+    <Panel title="Full backup">
+      {#if app.status === 'ready'}
+        {#if app.ctx.backup}
+          <BackupPanel backup={app.ctx.backup} />
+        {:else}
+          <p class="note">Full backup isn’t available in this build. Export rosters, custom units and packs from their own pages instead.</p>
+          <div class="cluster gap">
+            <LinkButton href={href('/roster')}>Rosters</LinkButton>
+            <LinkButton href={href('/forge')}>Custom units</LinkButton>
+            <LinkButton href={href('/library')}>Packs</LinkButton>
+          </div>
+        {/if}
       {/if}
     </Panel>
   </div>

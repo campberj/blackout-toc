@@ -1,6 +1,7 @@
 import { flushSync, mount, tick, unmount, type Component } from 'svelte';
 import type { AppContext } from '../../app';
 import AppStateHarness from './AppStateHarness.svelte';
+import './jsdom-polyfills';
 
 // jsdom smoke-test helper: mount a page under a real AppState and wait for async boot + loads.
 

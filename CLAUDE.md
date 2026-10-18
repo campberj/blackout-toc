@@ -10,6 +10,7 @@ Read `docs/DESIGN.md` before any work. It is the source of truth; if code and do
 - **No ESS content:** never commit official card stats, rules text, or art. Test fixtures use invented units.
 - **Tests:** every domain module ships `*.test.ts`. Engine changes need a golden test (seed + inputs → state).
 - **Fallible returns:** discriminated `{ok:true,…}|{ok:false,error}`; new code uses `Result<T,E>` from `src/domain/result.ts`.
+- **UI → services:** pass plain data, never Svelte `$state` proxies (they can't be stored in IndexedDB). Use `$state.raw` for parsed files and `$state.snapshot()` at dispatch/save boundaries.
 - **Done =** `npm run ci` green.
 - **Brevity:** terse code comments (why, not what), terse reports.
 

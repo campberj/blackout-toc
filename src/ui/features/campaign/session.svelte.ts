@@ -48,7 +48,8 @@ export class CampaignSession {
   async run(command: CampaignCommandInput): Promise<Result<CampaignEvent[], string>> {
     this.busy = true;
     try {
-      const r = await this.#svc.dispatch(this.id, command);
+      // Commands are persisted: strip Svelte proxies (IndexedDB can't clone them).
+      const r = await this.#svc.dispatch(this.id, $state.snapshot(command) as CampaignCommandInput);
       if (!r.ok) return r;
       const { events, ...open } = r.value;
       this.open = open;
@@ -61,7 +62,7 @@ export class CampaignSession {
   }
 
   preview(command: CampaignCommandInput) {
-    return this.#svc.preview(this.id, command);
+    return this.#svc.preview(this.id, $state.snapshot(command) as CampaignCommandInput);
   }
 
   async undo(): Promise<Result<true, string>> {

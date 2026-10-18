@@ -6,18 +6,8 @@ import { bundle, clock, fx, ids, memStorage } from '$lib/app/__fixtures__';
 import { router } from '../../router.svelte';
 import Harness from './__fixtures__/Harness.svelte';
 
-// The shared vitest config resolves `svelte` with node conditions (server build); components need
-// the client runtime. TODO(architect): `resolve.conditions: ['browser']` for jsdom tests instead.
-vi.mock('svelte', () => import('../../../../node_modules/svelte/src/index-client.js' as string));
-
-// jsdom lacks modal dialogs.
-HTMLDialogElement.prototype.showModal ??= function (this: HTMLDialogElement) {
-  this.open = true;
-};
-HTMLDialogElement.prototype.close ??= function (this: HTMLDialogElement) {
-  this.open = false;
-  this.dispatchEvent(new Event('close'));
-};
+vi.mock('svelte', () => import('../../state/svelte-client'));
+import '../../state/jsdom-polyfills';
 
 const settle = async (ms = 30) => {
   for (let i = 0; i < 5; i++) {
